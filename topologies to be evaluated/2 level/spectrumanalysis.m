@@ -2,26 +2,69 @@ clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level')
 simOut = sim('two_level_spwm.slx');
 %simOut = sim('two_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
-Fs = numel(Phase_currents.signals(1).values);            % Sampling frequency                    
-%T = 1/Fs;             % Sampling period       
-%L = 10000;             % Length of signal
-%t = (0:L-1)*T;        % Time vector
+
 N = 2^20;
+%% Spectrum of Ia
+Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
 Ia_Spectrum = fft(Phase_currents.signals(1).values,N*2);
 Ia_Spectrum_abs = abs(Ia_Spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
-%Y_abs = Y_abs/max(Y_abs);
-
-
+Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
 figure;
-semilogy(freq,Ia_Spectrum_abs)                          % Plot the magnitude of the samples of CTFT of the audio signal
+semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of Ia');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
-
 
 % figure;
 % plot(numel(phase(Y)),phase(Y))                           % Plot the phase of the samples of CTFT of the audio signal
 % ylabel('Phase (radians)');
 % xlabel('Frequency (Hz)');
 % % axis([0 4000 10^-4 1])                
+%% Spectrum of DCLINK_current
+Fs = numel(DCLINK_current.data);  %Sampling Frequency
+DCLINK_current_spectrum = fft(DCLINK_current.data,N*2);
+DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK_current_spectrum_abs = DCLINK_current_spectrum_abs/max(DCLINK_current_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK_current');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of DCLINK_voltage
+Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
+DCLINK_voltage_spectrum = fft(DCLINK_voltage.data,N*2);
+DCLINK_voltage_spectrum_abs = abs(DCLINK_voltage_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK_voltage_spectrum_abs = DCLINK_voltage_spectrum_abs/max(DCLINK_voltage_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK_voltage');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of VAB only
+Fs = numel(LL_voltages.signals(1).values);  %Sampling Frequency
+LL_voltages_spectrum = fft(LL_voltages.signals(1).values,N*2);
+LL_voltages_spectrum_abs = abs(LL_voltages_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+LL_voltages_spectrum_abs = LL_voltages_spectrum_abs/max(LL_voltages_spectrum_abs); % normalization
+figure;
+semilogy(freq,LL_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of Vab');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+
+
+
+
+
+
+
+
+
+
