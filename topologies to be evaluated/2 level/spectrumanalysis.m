@@ -1,9 +1,29 @@
 clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level')
-simOut = sim('two_level_spwm.slx');
+open_system('two_level_spwm.slx');
 %simOut = sim('two_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
-
 N = 2^20;
+ma = 0.8;
+ref_frequency = 2*pi*50;
+sw_frequency = 2000;
+Sampling_time = 50e-6; %sampling frequency of the model
+stop_time = 0.5; %duration of the model
+
+set_param('two_level_spwm', 'StopTime', 'stop_time')
+set_param('two_level_spwm/powergui','SampleTime','Sampling_time');
+set_param('two_level_spwm/Subsystem/PhaseA_Ref','amplitude','ma','frequency','ref_frequency');
+set_param('two_level_spwm/Subsystem/PhaseB_Ref','amplitude','ma','frequency','ref_frequency');
+set_param('two_level_spwm/Subsystem/PhaseC_Ref','amplitude','ma','frequency','ref_frequency');
+
+set_param('two_level_spwm/Subsystem/Carrier_signal','freq','sw_frequency');
+
+simOut = sim('two_level_spwm.slx');
+
+figure
+plot(Phase_currents.time,[Phase_currents.signals(1).values]);
+
+
+
 %% Spectrum of Ia
 Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
 Ia_Spectrum = fft(Phase_currents.signals(1).values,N*2);
@@ -60,7 +80,7 @@ xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 
 
-
+close_system('two_level_spwm.slx',false);
 
 
 
