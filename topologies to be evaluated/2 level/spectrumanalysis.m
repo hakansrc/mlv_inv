@@ -26,7 +26,7 @@ DCLINK_Cap1 = 100e-6; %Farads
 DCLINK_Cap2 = 100e-6; %Farads
 
 set_param('two_level_spwm/Load1','activePower','Load_Real_Power');
-set_param('two_level_spwm/Load1','activePower','Load_Inductive_Power');
+set_param('two_level_spwm/Load1','InductivePower','Load_Inductive_Power');
 set_param('two_level_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
 set_param('two_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('two_level_spwm/DCLINK_Cap1','capacitance','DCLINK_Cap1')
