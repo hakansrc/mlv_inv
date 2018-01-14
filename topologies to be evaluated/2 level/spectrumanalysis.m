@@ -5,9 +5,9 @@ open_system('two_level_spwm.slx');
 N = 2^20;
 
 %% values of the signals
-ma = 0.8;
+ma = 1;
 ref_frequency = 2*pi*50; %radians per sec
-sw_frequency = 32250; %Hz
+sw_frequency = 2050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
 stop_time = 0.5; %duration of the model
@@ -99,7 +99,6 @@ xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 
 
-close_system('two_level_spwm.slx',false);
 
 %% Spectrum of VAN 
 % Fs = numel(LN_voltages.signals(1).values);  %Sampling Frequency
@@ -121,7 +120,6 @@ plot(THD_Ia.time, 100*THD_Ia.data)
 title('THD of Ia');
 xlabel('Time(sec)');
 ylabel('THD (%)');
-close_system('two_level_spwm.slx',false);
 
 subplot(3,1,2);
 plot(THD_Van.time, 100*THD_Van.data)
