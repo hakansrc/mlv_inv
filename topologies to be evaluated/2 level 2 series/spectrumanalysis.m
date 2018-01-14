@@ -39,7 +39,7 @@ set_param('two_level_series_spwm/Load2','nominalfrequency','Load_Nominal_Freq');
 
 set_param('two_level_series_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('two_level_series_spwm/DCLINK1_Cap','capacitance','DCLINK1_Cap')
-set_param('two_level_series_spwm/DCLINK1_Cap','capacitance','DCLINK2_Cap')
+set_param('two_level_series_spwm/DCLINK2_Cap','capacitance','DCLINK2_Cap')
 
 set_param('two_level_series_spwm/Switches1/Subsystem/Carrier_signal','freq','sw_frequency'); % setting freq value of the carrier
 set_param('two_level_series_spwm/Switches2/Subsystem/Carrier_signal','freq','sw_frequency'); % setting freq value of the carrier
