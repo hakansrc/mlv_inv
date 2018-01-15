@@ -1,7 +1,6 @@
 clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level')
 open_system('two_level_spwm.slx');
-%simOut = sim('two_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 N = 2^20;
 
 %% values of the signals
@@ -37,6 +36,7 @@ set_param('two_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
 set_param('two_level_spwm/Subsystem/Carrier_signal','freq','sw_frequency'); % setting freq value of the carrier
 
 simOut = sim('two_level_spwm.slx'); %run the simulation
+%simOut = sim('two_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 
 % figure
 % plot(Phase_currents.time,[Phase_currents.signals(1).values]);
