@@ -1,4 +1,4 @@
-clear
+% clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\3 level')
 open_system('three_level_spwm.slx');
 %simOut = sim('three_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
@@ -16,7 +16,7 @@ set_param('three_level_spwm/powergui','SampleTime','Sampling_time'); % sampling 
 set_param('three_level_spwm/Switches/Subsystem/PhaseA_Ref','amplitude','ma','frequency','ref_frequency'); % setting ma and freq values of the ref sine waves
 set_param('three_level_spwm/Switches/Subsystem/PhaseB_Ref','amplitude','ma','frequency','ref_frequency'); % setting ma and freq values of the ref sine waves
 set_param('three_level_spwm/Switches/Subsystem/PhaseC_Ref','amplitude','ma','frequency','ref_frequency'); % setting ma and freq values of the ref sine waves
-get_param('three_level_spwm/','SimulationTime')
+% get_param('three_level_spwm/','SimulationTime')
 %% Load&Source settings
 Load_Real_Power = 8500; %W
 Load_Inductive_Power = 4116; %VAr 
@@ -36,7 +36,8 @@ set_param('three_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
 
 set_param('three_level_spwm/Switches/Subsystem/Carrier_signal1','freq','sw_frequency'); % setting freq value of the carrier1
 set_param('three_level_spwm/Switches/Subsystem/Carrier_signal2','freq','sw_frequency'); % setting freq value of the carrier1
-simOut = sim('three_level_spwm.slx'); %run the simulation
+% simOut = sim('three_level_spwm.slx'); %run the simulation
+threelevelspwm = sim('three_level_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 
 % figure
 % plot(Phase_currents.time,[Phase_currents.signals(1).values]);
@@ -45,7 +46,7 @@ simOut = sim('three_level_spwm.slx'); %run the simulation
 
 %% Spectrum of Ia
 % Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
-Ia_Spectrum = fft(Phase_currents.signals(1).values,N*2);
+Ia_Spectrum = fft(threelevelspwm.get('Phase_currents').signals(1).values,N*2);
 Ia_Spectrum_abs = abs(Ia_Spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
@@ -63,7 +64,7 @@ ylabel('Magnitude');
 % % axis([0 4000 10^-4 1])                
 %% Spectrum of DCLINK_current
 % Fs = numel(DCLINK_current.data);  %Sampling Frequency
-DCLINK_current_spectrum = fft(DCLINK_current.data,N*2);
+DCLINK_current_spectrum = fft(threelevelspwm.get('DCLINK_current').data,N*2);
 DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
@@ -75,7 +76,7 @@ xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of DCLINK_voltage
 % Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
-DCLINK_voltage_spectrum = fft(DCLINK_voltage.data,N*2);
+DCLINK_voltage_spectrum = fft(threelevelspwm.get('DCLINK_voltage').data,N*2);
 DCLINK_voltage_spectrum_abs = abs(DCLINK_voltage_spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
@@ -87,7 +88,7 @@ xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of VAB only
 % Fs = numel(LL_voltages.signals(1).values);  %Sampling Frequency
-LL_voltages_spectrum = fft(LL_voltages.signals(1).values,N*2);
+LL_voltages_spectrum = fft(threelevelspwm.get('LL_voltages').signals(1).values,N*2);
 LL_voltages_spectrum_abs = abs(LL_voltages_spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
@@ -102,7 +103,7 @@ ylabel('Magnitude');
 
 %% Spectrum of VAN 
 % Fs = numel(LN_voltages.signals(1).values);  %Sampling Frequency
-LN_voltages_spectrum = fft(LN_voltages.signals(1).values,N*2);
+LN_voltages_spectrum = fft(threelevelspwm.get('LN_voltages').signals(1).values,N*2);
 LN_voltages_spectrum_abs = abs(LN_voltages_spectrum(2:N/2));
 freq = (1:N/2-1)*Fs/N;   
 
@@ -116,24 +117,22 @@ ylabel('Magnitude');
 %% plotting of THD's
 figure
 subplot(3,1,1);
-plot(THD_Ia.time, 100*THD_Ia.data)
+plot(threelevelspwm.get('THD_Ia').time, 100*threelevelspwm.get('THD_Ia').data)
 title('THD of Ia');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
 subplot(3,1,2);
-plot(THD_Van.time, 100*THD_Van.data)
+plot(threelevelspwm.get('THD_Van').time, 100*threelevelspwm.get('THD_Van').data)
 title('THD of Van');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
 subplot(3,1,3);
-plot(THD_Vab.time, 100*THD_Vab.data)
+plot(threelevelspwm.get('THD_Vab').time, 100*threelevelspwm.get('THD_Vab').data)
 title('THD of Vab');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
 close_system('two_level_spwm.slx',false);
-
-
 
