@@ -4,7 +4,7 @@ open_system('two_level_spwm.slx');
 N = 2^20;
 
 %% values of the signals
-ma = 1;
+ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
@@ -18,16 +18,37 @@ set_param('two_level_spwm/Subsystem/PhaseC_Ref','amplitude','ma','frequency','re
 get_param('two_level_spwm/','SimulationTime')
 %% Load&Source settings
 Load_Real_Power = 8500; %W
-Load_Inductive_Power = 4116; %VAr 
+Load_Power_Factor = 0.9; 
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+%Load_Inductive_Power = 4116; %VAr 
 DC_Voltage_Source = 540; %Volts
-Load_Nominal_Freq = 50; %Hz
+Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
+
+Vll_rms = ma*DC_Voltage_Source*0.612;
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+Zload = Vll_rms/(Iline*sqrt(3));
+Rload = Zload*Load_Power_Factor;
+Xload = Zload*sin(acos(Load_Power_Factor));
+Lload = Xload/ref_frequency;
+
+
 DCLINK_Cap1 = 100e-6; %Farads
 DCLINK_Cap2 = 100e-6; %Farads
 
-set_param('two_level_spwm/Load1','activePower','Load_Real_Power');
-set_param('two_level_spwm/Load1','InductivePower','Load_Inductive_Power');
-set_param('two_level_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
-set_param('two_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
+set_param('two_level_spwm/Series RLC Branch1','Resistance','Rload','Inductance','Lload');
+set_param('two_level_spwm/Series RLC Branch2','Resistance','Rload','Inductance','Lload');
+set_param('two_level_spwm/Series RLC Branch3','Resistance','Rload','Inductance','Lload');
+
+% set_param('two_level_spwm/Load1','activePower','Load_Real_Power');
+% set_param('two_level_spwm/Load1','InductivePower','Load_Inductive_Power');
+% set_param('two_level_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
+
+Rin = 1; %ohm
+Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
+
+
+% set_param('two_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('two_level_spwm/DCLINK_Cap1','capacitance','DCLINK_Cap1')
 set_param('two_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
 
@@ -133,7 +154,7 @@ title('THD of Vab');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
-close_system('two_level_spwm.slx',false);
+% close_system('two_level_spwm.slx',false);
 
 
 
