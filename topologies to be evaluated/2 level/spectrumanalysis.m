@@ -1,4 +1,4 @@
-% clear
+clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level')
 open_system('two_level_spwm.slx');
 N = 2^20;
@@ -36,9 +36,9 @@ Lload = Xload/ref_frequency;
 DCLINK_Cap1 = 100e-6; %Farads
 DCLINK_Cap2 = 100e-6; %Farads
 
-set_param('two_level_spwm/Series RLC Branch1','Resistance','Rload','Inductance','Lload');
-set_param('two_level_spwm/Series RLC Branch2','Resistance','Rload','Inductance','Lload');
-set_param('two_level_spwm/Series RLC Branch3','Resistance','Rload','Inductance','Lload');
+set_param('two_level_spwm/twolevel_load1','Resistance','Rload','Inductance','Lload');
+set_param('two_level_spwm/twolevel_load2','Resistance','Rload','Inductance','Lload');
+set_param('two_level_spwm/twolevel_load3','Resistance','Rload','Inductance','Lload');
 
 % set_param('two_level_spwm/Load1','activePower','Load_Real_Power');
 % set_param('two_level_spwm/Load1','InductivePower','Load_Inductive_Power');
@@ -50,8 +50,8 @@ Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
 
 % set_param('two_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('two_level_spwm/DCLINK_Cap1','capacitance','DCLINK_Cap1')
-set_param('two_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
-
+% set_param('two_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
+%cap2 deleted because the capacitor number reduced to 1
 
 
 set_param('two_level_spwm/Subsystem/Carrier_signal','freq','sw_frequency'); % setting freq value of the carrier
@@ -123,16 +123,16 @@ ylabel('Magnitude');
 
 %% Spectrum of VAN 
 % Fs = numel(LN_voltages.signals(1).values);  %Sampling Frequency
-LN_voltages_spectrum = fft(twolevelspwm.get('LN_voltages').signals(1).values,N*2);
-LN_voltages_spectrum_abs = abs(LN_voltages_spectrum(2:N/2));
-freq = (1:N/2-1)*Fs/N;   
-
-LN_voltages_spectrum_abs = LN_voltages_spectrum_abs/max(LN_voltages_spectrum_abs); % normalization
-figure;
-semilogy(freq,LN_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Van');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
+% LN_voltages_spectrum = fft(twolevelspwm.get('LN_voltages').signals(1).values,N*2);
+% LN_voltages_spectrum_abs = abs(LN_voltages_spectrum(2:N/2));
+% freq = (1:N/2-1)*Fs/N;   
+% 
+% LN_voltages_spectrum_abs = LN_voltages_spectrum_abs/max(LN_voltages_spectrum_abs); % normalization
+% figure;
+% semilogy(freq,LN_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+% title('Spectrum of Van');
+% xlabel('Frequency (Hz)');
+% ylabel('Magnitude');
 
 %% plotting of THD's
 figure
@@ -142,17 +142,22 @@ title('THD of Ia');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
-subplot(3,1,2);
-plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
-title('THD of Van');
-xlabel('Time(sec)');
-ylabel('THD (%)');
+% subplot(3,1,2);
+% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% title('THD of Van');
+% xlabel('Time(sec)');
+% ylabel('THD (%)');
 
 subplot(3,1,3);
 plot(twolevelspwm.get('THD_Vab').time, 100*twolevelspwm.get('THD_Vab').data)
 title('THD of Vab');
 xlabel('Time(sec)');
 ylabel('THD (%)');
+
+halfof_timelength = round((numel(twolevelspwm.get('DCLINK_voltage').time))/2);
+maxvoltage = max(twolevelspwm.get('DCLINK_voltage').data(halfof_timelength:end));
+minvoltage = min(twolevelspwm.get('DCLINK_voltage').data(halfof_timelength:end));
+twolevel_DCRipple = maxvoltage - minvoltage;
 
 % close_system('two_level_spwm.slx',false);
 
