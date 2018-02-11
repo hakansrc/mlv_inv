@@ -32,7 +32,6 @@ Rload = Zload*Load_Power_Factor;
 Xload = Zload*sin(acos(Load_Power_Factor));
 Lload = Xload/ref_frequency;
 
-
 DCLINK_Cap1 = 100e-6; %Farads
 DCLINK_Cap2 = 100e-6; %Farads
 

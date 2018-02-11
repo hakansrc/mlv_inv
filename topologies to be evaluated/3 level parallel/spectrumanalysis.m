@@ -4,8 +4,8 @@ cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\3 level p
 open_system('three_levelparallel_spwm.slx');
 %simOut = sim('two_level_series_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 N = 2^20;
-set_param('three_levelparallel_spwm/Switches2','commented','off')
-set_param('three_levelparallel_spwm/Load2','commented','off')
+% set_param('three_levelparallel_spwm/Switches2','commented','off')
+% set_param('three_levelparallel_spwm/Load2','commented','off')
 
 
 %% values of the signals
@@ -28,21 +28,38 @@ set_param('three_levelparallel_spwm/Switches2/Subsystem/PhaseB_Ref','amplitude',
 set_param('three_levelparallel_spwm/Switches2/Subsystem/PhaseC_Ref','amplitude','ma','frequency','ref_frequency'); % setting ma and freq values of the ref sine waves
 %% Load&Source settings
 Load_Real_Power = 8500; %W
-Load_Inductive_Power = 4116; %VAr 
+Load_Power_Factor = 0.9; 
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+% Load_Inductive_Power = 4116; %VAr 
+
 DC_Voltage_Source = 540; %Volts
-Load_Nominal_Freq = 50; %Hz
+Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
+
+n = 2; %number of series modules
+
+Vll_rms = ma*DC_Voltage_Source*0.612/n;
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+Zload = Vll_rms/(Iline*sqrt(3));  %ohm total
+Rload = n*Zload*Load_Power_Factor;  %ohm total
+Xload = n*Zload*sin(acos(Load_Power_Factor)); %ohm total
+Lload = Xload/ref_frequency;
+
+Rin = 1; %ohm
+Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
+
 DCLINK_Cap1 = 100e-6; %Farads
 DCLINK_Cap2 = 100e-6; %Farads
 
-set_param('three_levelparallel_spwm/Load1','activePower','Load_Real_Power/2');
-set_param('three_levelparallel_spwm/Load1','InductivePower','Load_Inductive_Power/2');
-set_param('three_levelparallel_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
-
-set_param('three_levelparallel_spwm/Load2','activePower','Load_Real_Power/2');
-set_param('three_levelparallel_spwm/Load2','InductivePower','Load_Inductive_Power/2');
-set_param('three_levelparallel_spwm/Load2','nominalfrequency','Load_Nominal_Freq');
-
-set_param('three_levelparallel_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
+% set_param('three_levelparallel_spwm/Load1','activePower','Load_Real_Power/2');
+% set_param('three_levelparallel_spwm/Load1','InductivePower','Load_Inductive_Power/2');
+% set_param('three_levelparallel_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
+% 
+% set_param('three_levelparallel_spwm/Load2','activePower','Load_Real_Power/2');
+% set_param('three_levelparallel_spwm/Load2','InductivePower','Load_Inductive_Power/2');
+% set_param('three_levelparallel_spwm/Load2','nominalfrequency','Load_Nominal_Freq');
+% 
+% set_param('three_levelparallel_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('three_levelparallel_spwm/DCLINK_Cap1','capacitance','DCLINK_Cap1')
 set_param('three_levelparallel_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
 
@@ -181,6 +198,11 @@ plot(threelevelspwm_p.get('THD_Vab2').time, 100*threelevelspwm_p.get('THD_Vab2')
 title('THD of Vab2');
 xlabel('Time(sec)');
 ylabel('THD (%)');
+
+halfof_timelength = round((numel(threelevelspwm_p.get('DCLINK_voltage').time))/2);
+maxvoltage = max(threelevelspwm_p.get('DCLINK_voltage').data(halfof_timelength:end));
+minvoltage = min(threelevelspwm_p.get('DCLINK_voltage').data(halfof_timelength:end));
+threelevel_p_DCRipple = maxvoltage - minvoltage;
 
 
 close_system('two_level_seriesparallel_spwm.slx',true);

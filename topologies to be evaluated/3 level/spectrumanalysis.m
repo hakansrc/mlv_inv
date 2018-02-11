@@ -19,16 +19,36 @@ set_param('three_level_spwm/Switches/Subsystem/PhaseC_Ref','amplitude','ma','fre
 % get_param('three_level_spwm/','SimulationTime')
 %% Load&Source settings
 Load_Real_Power = 8500; %W
-Load_Inductive_Power = 4116; %VAr 
+Load_Power_Factor = 0.9; 
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+% Load_Inductive_Power = 4116; %VAr 
 DC_Voltage_Source = 540; %Volts
-Load_Nominal_Freq = 50; %Hz
-DCLINK_Cap1 = 1000e-6; %Farads
-DCLINK_Cap2 = 1000e-6; %Farads
+Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 
-set_param('three_level_spwm/Load1','activePower','Load_Real_Power');
-set_param('three_level_spwm/Load1','InductivePower','Load_Inductive_Power');
-set_param('three_level_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
-set_param('three_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
+Vll_rms = ma*DC_Voltage_Source*0.612;
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+Zload = Vll_rms/(Iline*sqrt(3));
+Rload = Zload*Load_Power_Factor;
+Xload = Zload*sin(acos(Load_Power_Factor));
+Lload = Xload/ref_frequency;
+
+DCLINK_Cap1 = 100e-6; %Farads
+DCLINK_Cap2 = 100e-6; %Farads
+
+set_param('three_level_spwm/threelevel_load1','Resistance','Rload','Inductance','Lload');
+set_param('three_level_spwm/threelevel_load2','Resistance','Rload','Inductance','Lload');
+set_param('three_level_spwm/threelevel_load3','Resistance','Rload','Inductance','Lload');
+
+
+% set_param('three_level_spwm/Load1','activePower','Load_Real_Power');
+% set_param('three_level_spwm/Load1','InductivePower','Load_Inductive_Power');
+% set_param('three_level_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
+
+Rin = 1/1000; %ohm
+Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
+
+% set_param('three_level_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('three_level_spwm/DCLINK_Cap1','capacitance','DCLINK_Cap1')
 set_param('three_level_spwm/DCLINK_Cap2','capacitance','DCLINK_Cap2')
 
@@ -134,5 +154,11 @@ title('THD of Vab');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
-close_system('two_level_spwm.slx',false);
+halfof_timelength = round((numel(threelevelspwm.get('DCLINK_voltage').time))/2);
+maxvoltage = max(threelevelspwm.get('DCLINK_voltage').data(halfof_timelength:end));
+minvoltage = min(threelevelspwm.get('DCLINK_voltage').data(halfof_timelength:end));
+threelevel_DCRipple = maxvoltage - minvoltage;
+
+
+% close_system('two_level_spwm.slx',false);
 

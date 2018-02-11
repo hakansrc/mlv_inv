@@ -9,7 +9,8 @@ N = 2^20;
 ma = 1;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
-interleaving_angle = 180; %degrees
+m = 2; %number of parallel modules
+interleaving_angle = 360/m; %degrees
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
 stop_time = 0.5; %duration of the model
@@ -33,29 +34,62 @@ set_param('two_level_seriesparallel_spwm/Switches4/Subsystem/PhaseB_Ref','amplit
 set_param('two_level_seriesparallel_spwm/Switches4/Subsystem/PhaseC_Ref','amplitude','ma','frequency','ref_frequency'); % setting ma and freq values of the ref sine waves
 %% Load&Source settings
 Load_Real_Power = 8500; %W
-Load_Inductive_Power = 4116; %VAr 
+Load_Power_Factor = 0.9; 
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+%Load_Inductive_Power = 4116; %VAr 
 DC_Voltage_Source = 540; %Volts
-Load_Nominal_Freq = 50; %Hz
+Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
+
+m = 2; %number of parallel modules
+n = 2; %number of series modules
+
+Vll_rms = ma*DC_Voltage_Source*0.612/n;
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+Zload = Vll_rms/(Iline*sqrt(3));  %ohm total
+Rload = m*n*Zload*Load_Power_Factor;  %ohm total
+Xload = m*n*Zload*sin(acos(Load_Power_Factor)); %ohm total
+Lload = Xload/ref_frequency;
+
+Rin = 1; %ohm
+Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
+
 DCLINK1_Cap = 100e-6; %Farads
 DCLINK2_Cap = 100e-6; %Farads
 
-set_param('two_level_seriesparallel_spwm/Load1','activePower','Load_Real_Power/4');
-set_param('two_level_seriesparallel_spwm/Load1','InductivePower','Load_Inductive_Power/4');
-set_param('two_level_seriesparallel_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load1','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load2','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load3','Resistance','Rload','Inductance','Lload');
 
-set_param('two_level_seriesparallel_spwm/Load2','activePower','Load_Real_Power/4');
-set_param('two_level_seriesparallel_spwm/Load2','InductivePower','Load_Inductive_Power/4');
-set_param('two_level_seriesparallel_spwm/Load2','nominalfrequency','Load_Nominal_Freq');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load4','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load5','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load6','Resistance','Rload','Inductance','Lload');
 
-set_param('two_level_seriesparallel_spwm/Load3','activePower','Load_Real_Power/4');
-set_param('two_level_seriesparallel_spwm/Load3','InductivePower','Load_Inductive_Power/4');
-set_param('two_level_seriesparallel_spwm/Load3','nominalfrequency','Load_Nominal_Freq');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load7','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load8','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load9','Resistance','Rload','Inductance','Lload');
 
-set_param('two_level_seriesparallel_spwm/Load4','activePower','Load_Real_Power/4');
-set_param('two_level_seriesparallel_spwm/Load4','InductivePower','Load_Inductive_Power/4');
-set_param('two_level_seriesparallel_spwm/Load4','nominalfrequency','Load_Nominal_Freq');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load10','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load11','Resistance','Rload','Inductance','Lload');
+set_param('two_level_seriesparallel_spwm/twoseritwoparallel_load12','Resistance','Rload','Inductance','Lload');
 
-set_param('two_level_seriesparallel_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
+% set_param('two_level_seriesparallel_spwm/Load1','activePower','Load_Real_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load1','InductivePower','Load_Inductive_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load1','nominalfrequency','Load_Nominal_Freq');
+% 
+% set_param('two_level_seriesparallel_spwm/Load2','activePower','Load_Real_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load2','InductivePower','Load_Inductive_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load2','nominalfrequency','Load_Nominal_Freq');
+% 
+% set_param('two_level_seriesparallel_spwm/Load3','activePower','Load_Real_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load3','InductivePower','Load_Inductive_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load3','nominalfrequency','Load_Nominal_Freq');
+% 
+% set_param('two_level_seriesparallel_spwm/Load4','activePower','Load_Real_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load4','InductivePower','Load_Inductive_Power/4');
+% set_param('two_level_seriesparallel_spwm/Load4','nominalfrequency','Load_Nominal_Freq');
+
+% set_param('two_level_seriesparallel_spwm/DC Voltage Source','amplitude','DC_Voltage_Source');
 set_param('two_level_seriesparallel_spwm/DCLINK1_Cap','capacitance','DCLINK1_Cap')
 set_param('two_level_seriesparallel_spwm/DCLINK2_Cap','capacitance','DCLINK2_Cap')
 
@@ -293,7 +327,15 @@ title('THD of Vab4');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
-close_system('two_level_seriesparallel_spwm.slx',true);
+halfof_timelength = round((numel(twolevelspwm_sp.get('DCLINK1_voltage').time))/2);
+maxvoltage1 = max(twolevelspwm_sp.get('DCLINK1_voltage').data(halfof_timelength:end));
+minvoltage1 = min(twolevelspwm_sp.get('DCLINK1_voltage').data(halfof_timelength:end));
+twolevel_sp_DC1Ripple = maxvoltage1 - minvoltage1;
+maxvoltage2 = max(twolevelspwm_sp.get('DCLINK2_voltage').data(halfof_timelength:end));
+minvoltage2 = min(twolevelspwm_sp.get('DCLINK2_voltage').data(halfof_timelength:end));
+twolevel_sp_DC2Ripple = maxvoltage2 - minvoltage2;
+
+% close_system('two_level_seriesparallel_spwm.slx',true);
 
 
 
