@@ -1,4 +1,3 @@
-%% module 1&2 are in series and 3&4 are in parallel with them respectrively
 % clear
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\3 level parallel')
 open_system('three_levelparallel_spwm.slx');
