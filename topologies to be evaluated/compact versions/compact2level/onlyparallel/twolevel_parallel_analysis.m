@@ -7,7 +7,7 @@ ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 0.5; %duration of the model
+stop_time = 0.2; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8500; %W
 Load_Power_Factor = 0.9; 
@@ -16,7 +16,7 @@ Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
 DC_Voltage_Source = 540; %Volts
 Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 
-n = 2; %number of interleaved inverters
+n = 2; %number of interleaved inverters 
 
 interleaving_angle = 360/n;
 intangle1 = 0;
