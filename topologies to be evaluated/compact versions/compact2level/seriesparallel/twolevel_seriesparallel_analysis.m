@@ -137,8 +137,7 @@ end
                 
 
 twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
-
-%% Spectrum of DCLINK_voltage
+%% Spectrum of DCLINK1_voltage
 % Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
 DCLINK1_voltage_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data,N*2);
 DCLINK1_voltage_spectrum_abs = abs(DCLINK1_voltage_spectrum(2:N/2));
@@ -147,10 +146,10 @@ freq = (1:N/2-1)*Fs/N;
 DCLINK1_voltage_spectrum_abs = DCLINK1_voltage_spectrum_abs/max(DCLINK1_voltage_spectrum_abs); % normalization
 figure;
 semilogy(freq,DCLINK1_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK1_voltage');
+title('Spectrum of DCLINK1 voltage');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
-%% Spectrum of DCLINK_current
+%% Spectrum of DCLINK1_current
 % Fs = numel(DCLINK1_current.data);  %Sampling Frequency
 DCLINK1_current_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK1_current').data,N*2);
 DCLINK1_current_spectrum_abs = abs(DCLINK1_current_spectrum(2:N/2));
@@ -159,7 +158,31 @@ freq = (1:N/2-1)*Fs/N;
 DCLINK1_current_spectrum_abs = DCLINK1_current_spectrum_abs/max(DCLINK1_current_spectrum_abs); % normalization
 figure;
 semilogy(freq,DCLINK1_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK1_current');
+title('Spectrum of DCLINK1 current');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of DCLINK2_voltage
+% Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
+DCLINK1_voltage_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK2_voltage').data,N*2);
+DCLINK1_voltage_spectrum_abs = abs(DCLINK1_voltage_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK1_voltage_spectrum_abs = DCLINK1_voltage_spectrum_abs/max(DCLINK1_voltage_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK1_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK2 voltage');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of DCLINK2_current
+% Fs = numel(DCLINK1_current.data);  %Sampling Frequency
+DCLINK1_current_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK2_current').data,N*2);
+DCLINK1_current_spectrum_abs = abs(DCLINK1_current_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK1_current_spectrum_abs = DCLINK1_current_spectrum_abs/max(DCLINK1_current_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK1_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK2 current');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of VAB1 only
@@ -183,9 +206,47 @@ freq = (1:N/2-1)*Fs/N;
 Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
 figure;
 semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Ia');
+title('Spectrum of Ia1');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
+%% plotting of THD's
+figure
+subplot(2,1,1);
+plot(twolevelseriesparallel_interleaved.get('THD_Ia1').time, 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data)
+title('THD of Ia1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
+
+% subplot(3,1,2);
+% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% title('THD of Van');
+% xlabel('Time(sec)');
+% ylabel('THD (%)');
+
+subplot(2,1,2);
+plot(twolevelseriesparallel_interleaved.get('THD_Vab1').time, 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data)
+title('THD of Vab1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
+
+figure
+subplot(2,1,1);
+plot(twolevelseriesparallel_interleaved.get('THD_Ia5').time, 100*twolevelseriesparallel_interleaved.get('THD_Ia5').data)
+title('THD of Ia5');
+xlabel('Time(sec)');
+ylabel('THD (%)');
+
+% subplot(3,1,2);
+% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% title('THD of Van');
+% xlabel('Time(sec)');
+% ylabel('THD (%)');
+
+subplot(2,1,2);
+plot(twolevelseriesparallel_interleaved.get('THD_Vab5').time, 100*twolevelseriesparallel_interleaved.get('THD_Vab5').data)
+title('THD of Vab5');
+xlabel('Time(sec)');
+ylabel('THD (%)');
 
 
 

@@ -106,7 +106,7 @@ freq = (1:N/2-1)*Fs/N;
 DCLINK_voltage_spectrum_abs = DCLINK_voltage_spectrum_abs/max(DCLINK_voltage_spectrum_abs); % normalization
 figure;
 semilogy(freq,DCLINK_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK_voltage');
+title('Spectrum of DCLINK voltage');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of DCLINK_current
@@ -118,7 +118,7 @@ freq = (1:N/2-1)*Fs/N;
 DCLINK_current_spectrum_abs = DCLINK_current_spectrum_abs/max(DCLINK_current_spectrum_abs); % normalization
 figure;
 semilogy(freq,DCLINK_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK_current');
+title('Spectrum of DCLINK current');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of VAB1 only
@@ -130,7 +130,7 @@ freq = (1:N/2-1)*Fs/N;
 LL_voltages_spectrum_abs = LL_voltages_spectrum_abs/max(LL_voltages_spectrum_abs); % normalization
 figure;
 semilogy(freq,LL_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Vab');
+title('Spectrum of Vab1');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 %% Spectrum of Ia1 only
@@ -142,10 +142,28 @@ freq = (1:N/2-1)*Fs/N;
 Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
 figure;
 semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Ia');
+title('Spectrum of Ia1');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
+%% plotting of THD's
+figure
+subplot(2,1,1);
+plot(twolevel_interleaved.get('THD_Ia1').time, 100*twolevel_interleaved.get('THD_Ia1').data)
+title('THD of Ia1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
 
+% subplot(3,1,2);
+% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% title('THD of Van');
+% xlabel('Time(sec)');
+% ylabel('THD (%)');
+
+subplot(2,1,2);
+plot(twolevel_interleaved.get('THD_Vab1').time, 100*twolevel_interleaved.get('THD_Vab1').data)
+title('THD of Vab1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
 
 
 timelength = round((numel(twolevel_interleaved.get('DCLINK_voltage').time))*0.8);
