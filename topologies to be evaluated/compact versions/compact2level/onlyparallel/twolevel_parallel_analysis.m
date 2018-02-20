@@ -171,4 +171,8 @@ maxvoltage = max(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end)
 minvoltage = min(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
 twolevel_DCRipple = maxvoltage - minvoltage;
 
+fprintf('Vcrms value is: %d \n',mean(twolevel_interleaved.get('Vcrms').signals(1).values(timelength:end)));
+fprintf('Icrms value is: %d \n',mean(twolevel_interleaved.get('Icrms').signals(1).values(timelength:end)));
+
+
 

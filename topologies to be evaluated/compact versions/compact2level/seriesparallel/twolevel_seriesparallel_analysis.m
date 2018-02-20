@@ -5,7 +5,7 @@ N = 2^20;
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
-Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
+Sampling_time = 1/(4*20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
 stop_time = 0.2; %duration of the model
 %% Load&Source settings
@@ -19,11 +19,17 @@ Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 n = 2; %number of interleaved inverters
 m = 2; %number of series DCLINKs
 
-interleaving_angle = 360/n;
+interleaving_angle = 360/(2*n);
 intangle1 = 0;
 intangle2 = intangle1 + interleaving_angle;
 intangle3 = intangle2 + interleaving_angle;
 intangle4 = intangle3 + interleaving_angle;
+intangle5 = intangle1 + 360/m;
+intangle6 = intangle2 + 360/m;
+intangle7 = intangle3 + 360/m;
+intangle8 = intangle4 + 360/m;
+%1234 are one leg in parallel
+%3456 are one leg in parallel
 
 
 Vll_rms = ma*DC_Voltage_Source*0.612/m;
@@ -133,7 +139,7 @@ end
                     set_param('twolevel_seriesparallel/Inverter 7 Load','commented','on')
                     set_param('twolevel_seriesparallel/Inverter 8 Load','commented','on')
                 end
-                
+    
                 
 
 twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
@@ -258,4 +264,24 @@ maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK2_voltage').data(
 minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK2_voltage').data(timelength:end));
 twolevelseriesparallel_DC2Ripple = maxvoltage - minvoltage;
 
+fprintf('Vc1rms value is: %d \n',mean(twolevelseriesparallel_interleaved.get('Vc1rms').signals(1).values(timelength:end)));
+fprintf('Ic1rms value is: %d \n',mean(twolevelseriesparallel_interleaved.get('Ic1rms').signals(1).values(timelength:end)));
+fprintf('Vc2rms value is: %d \n',mean(twolevelseriesparallel_interleaved.get('Vc2rms').signals(1).values(timelength:end)));
+fprintf('Ic2rms value is: %d \n',mean(twolevelseriesparallel_interleaved.get('Ic2rms').signals(1).values(timelength:end)));
 
+
+close all
+% sayac = 1;
+% for intangle5=0:10:360;
+%     twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
+% timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.8);
+% maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
+% minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
+% twolevelseriesparallel_DC1Ripple = maxvoltage - minvoltage;
+% maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK2_voltage').data(timelength:end));
+% minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK2_voltage').data(timelength:end));
+% twolevelseriesparallel_DC2Ripple = maxvoltage - minvoltage;
+% ripple1(sayac) = twolevelseriesparallel_DC1Ripple;
+% ripple2(sayac) = twolevelseriesparallel_DC2Ripple;
+% sayac = sayac+1;
+% end
