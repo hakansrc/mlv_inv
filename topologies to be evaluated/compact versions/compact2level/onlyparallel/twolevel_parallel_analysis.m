@@ -8,7 +8,7 @@ ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 3; %duration of the model
+stop_time = 0.2; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
