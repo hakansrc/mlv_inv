@@ -1,15 +1,16 @@
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\compact versions\compact2level\seriesparallel')
 open_system('twolevel_seriesparallel.slx');
+clear
 N = 2^20;
 %% values of the signals
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
-Sampling_time = 1/(4*20*sw_frequency); %sampling frequency of the model
+Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 0.2; %duration of the model
+stop_time = 1; %duration of the model
 %% Load&Source settings
-Load_Real_Power = 8500; %W
+Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
 Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
 Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
@@ -17,28 +18,46 @@ DC_Voltage_Source = 540; %Volts
 Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 
 n = 2; %number of interleaved inverters
-m = 2; %number of series DCLINKs
+m = 2; %number of series DCLINKs (do not change this)
 
-interleaving_angle = 360/(2*n);
+interleaving_angle = 360/(n);
 intangle1 = 0;
-intangle2 = intangle1 + interleaving_angle;
-intangle3 = intangle2 + interleaving_angle;
-intangle4 = intangle3 + interleaving_angle;
-intangle5 = intangle1 + 360/m;
-intangle6 = intangle2 + 360/m;
-intangle7 = intangle3 + 360/m;
-intangle8 = intangle4 + 360/m;
-%1234 are one leg in parallel
-%3456 are one leg in parallel
+intangle2 = interleaving_angle;
+intangle3 = 0;
+intangle4 = interleaving_angle;
+
 
 
 Vll_rms = ma*DC_Voltage_Source*0.612/m;
+Vln_rms = Vll_rms/sqrt(3);
 Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
-Zload = m*n*Vll_rms/(Iline*sqrt(3));
-Rload = Zload*Load_Power_Factor;
-Xload = Zload*sin(acos(Load_Power_Factor));
-Lload = Xload/ref_frequency;
+% Zbase = Vll_rms^2/Load_Apparent_Power;
+% Xs = 0.5*Zbase;
+theta = acos((Load_Real_Power/3)/(Vln_rms*Iline));
+%% finding by force
+% for delta = 0:0.000001*pi:2*pi
+%     theformula = sin(delta)*Vln_rms/(cos(theta-delta)*Xs*Iline);
+%     acilar(la) = theformula;
+%     if (0.9999<theformula)&&(theformula<1.0001)
+%         yukacisi = delta;
+%         break
+%     end
+%     la = la+1;
+% end
+% %  delta = 0:0.000001*pi:2*pi;
+% Load_Angle = yukacisi
+% Ef = Vln_rms*cos(Load_Angle)-cos(pi/2-theta+Load_Angle)*Xs*Iline;
+%%
+% Zload = m*n*Vll_rms/(Iline*sqrt(3));
+% Rload = Zload*Load_Power_Factor;
+% Xload = Zload*sin(acos(Load_Power_Factor));
+% Lload = Xload/ref_frequency;
 
+%% equating the angle of the load angle and the powerfactor angle
+Load_Angle = acos(Load_Power_Factor);
+Ef = Vln_rms*cos(Load_Angle);
+Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
+Ls = n*m*Xs/ref_frequency; % n: number of interleaved inverters  
 
 DCLINK_Cap = 100e-6; %Farads
 
@@ -49,96 +68,37 @@ Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
 
 
 %% commenting out the inverters depending on the 'n' value
-if n==4
+if n == 2
     set_param('twolevel_seriesparallel/Inverter1','commented','off')
     set_param('twolevel_seriesparallel/Inverter2','commented','off')
     set_param('twolevel_seriesparallel/Inverter3','commented','off')
     set_param('twolevel_seriesparallel/Inverter4','commented','off')
-    set_param('twolevel_seriesparallel/Inverter5','commented','off')
-    set_param('twolevel_seriesparallel/Inverter6','commented','off')
-    set_param('twolevel_seriesparallel/Inverter7','commented','off')
-    set_param('twolevel_seriesparallel/Inverter8','commented','off')
     set_param('twolevel_seriesparallel/Inverter 1 Load','commented','off')
     set_param('twolevel_seriesparallel/Inverter 2 Load','commented','off')
     set_param('twolevel_seriesparallel/Inverter 3 Load','commented','off')
     set_param('twolevel_seriesparallel/Inverter 4 Load','commented','off')
-    set_param('twolevel_seriesparallel/Inverter 5 Load','commented','off')
-    set_param('twolevel_seriesparallel/Inverter 6 Load','commented','off')
-    set_param('twolevel_seriesparallel/Inverter 7 Load','commented','off')
-    set_param('twolevel_seriesparallel/Inverter 8 Load','commented','off')
-end   
-    if n == 3
-        set_param('twolevel_seriesparallel/Inverter1','commented','off')
-        set_param('twolevel_seriesparallel/Inverter2','commented','off')
-        set_param('twolevel_seriesparallel/Inverter3','commented','off')
-        set_param('twolevel_seriesparallel/Inverter4','commented','on')
-        set_param('twolevel_seriesparallel/Inverter5','commented','off')
-        set_param('twolevel_seriesparallel/Inverter6','commented','off')
-        set_param('twolevel_seriesparallel/Inverter7','commented','off')
-        set_param('twolevel_seriesparallel/Inverter8','commented','on')
-        set_param('twolevel_seriesparallel/Inverter 1 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 2 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 3 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
-        set_param('twolevel_seriesparallel/Inverter 5 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 6 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 7 Load','commented','off')
-        set_param('twolevel_seriesparallel/Inverter 8 Load','commented','on')
-    end
-        if n == 2
-            set_param('twolevel_seriesparallel/Inverter1','commented','off')
-            set_param('twolevel_seriesparallel/Inverter2','commented','off')
-            set_param('twolevel_seriesparallel/Inverter3','commented','on')
-            set_param('twolevel_seriesparallel/Inverter4','commented','on')
-            set_param('twolevel_seriesparallel/Inverter5','commented','off')
-            set_param('twolevel_seriesparallel/Inverter6','commented','off')
-            set_param('twolevel_seriesparallel/Inverter7','commented','on')
-            set_param('twolevel_seriesparallel/Inverter8','commented','on')
-            set_param('twolevel_seriesparallel/Inverter 1 Load','commented','off')
-            set_param('twolevel_seriesparallel/Inverter 2 Load','commented','off')
-            set_param('twolevel_seriesparallel/Inverter 3 Load','commented','on')
-            set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
-            set_param('twolevel_seriesparallel/Inverter 5 Load','commented','off')
-            set_param('twolevel_seriesparallel/Inverter 6 Load','commented','off')
-            set_param('twolevel_seriesparallel/Inverter 7 Load','commented','on')
-            set_param('twolevel_seriesparallel/Inverter 8 Load','commented','on')
-        end
-            if n == 1
-                set_param('twolevel_seriesparallel/Inverter1','commented','off')
-                set_param('twolevel_seriesparallel/Inverter2','commented','on')
-                set_param('twolevel_seriesparallel/Inverter3','commented','on')
-                set_param('twolevel_seriesparallel/Inverter4','commented','on')
-                set_param('twolevel_seriesparallel/Inverter5','commented','off')
-                set_param('twolevel_seriesparallel/Inverter6','commented','on')
-                set_param('twolevel_seriesparallel/Inverter7','commented','on')
-                set_param('twolevel_seriesparallel/Inverter8','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 1 Load','commented','off')
-                set_param('twolevel_seriesparallel/Inverter 2 Load','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 3 Load','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 5 Load','commented','off')
-                set_param('twolevel_seriesparallel/Inverter 6 Load','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 7 Load','commented','on')
-                set_param('twolevel_seriesparallel/Inverter 8 Load','commented','on')
-            end
-                if n == 0
-                    set_param('twolevel_seriesparallel/Inverter1','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter2','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter3','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter4','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter5','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter6','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter7','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter8','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 1 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 2 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 3 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 5 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 6 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 7 Load','commented','on')
-                    set_param('twolevel_seriesparallel/Inverter 8 Load','commented','on')
-                end
+
+end
+if n == 1
+    set_param('twolevel_seriesparallel/Inverter1','commented','off')
+    set_param('twolevel_seriesparallel/Inverter2','commented','on')
+    set_param('twolevel_seriesparallel/Inverter3','commented','off')
+    set_param('twolevel_seriesparallel/Inverter4','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 1 Load','commented','off')
+    set_param('twolevel_seriesparallel/Inverter 2 Load','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 3 Load','commented','off')
+    set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
+end
+if n == 0
+    set_param('twolevel_seriesparallel/Inverter1','commented','on')
+    set_param('twolevel_seriesparallel/Inverter2','commented','on')
+    set_param('twolevel_seriesparallel/Inverter3','commented','on')
+    set_param('twolevel_seriesparallel/Inverter4','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 1 Load','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 2 Load','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 3 Load','commented','on')
+    set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
+end
     
                 
 
@@ -237,8 +197,8 @@ ylabel('THD (%)');
 
 figure
 subplot(2,1,1);
-plot(twolevelseriesparallel_interleaved.get('THD_Ia5').time, 100*twolevelseriesparallel_interleaved.get('THD_Ia5').data)
-title('THD of Ia5');
+plot(twolevelseriesparallel_interleaved.get('THD_Ia3').time, 100*twolevelseriesparallel_interleaved.get('THD_Ia3').data)
+title('THD of Ia3');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
@@ -249,14 +209,14 @@ ylabel('THD (%)');
 % ylabel('THD (%)');
 
 subplot(2,1,2);
-plot(twolevelseriesparallel_interleaved.get('THD_Vab5').time, 100*twolevelseriesparallel_interleaved.get('THD_Vab5').data)
-title('THD of Vab5');
+plot(twolevelseriesparallel_interleaved.get('THD_Vab3').time, 100*twolevelseriesparallel_interleaved.get('THD_Vab3').data)
+title('THD of Vab3');
 xlabel('Time(sec)');
 ylabel('THD (%)');
 
 
 
-timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.8);
+timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.9);
 maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
 minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
 twolevelseriesparallel_DC1Ripple = maxvoltage - minvoltage;
