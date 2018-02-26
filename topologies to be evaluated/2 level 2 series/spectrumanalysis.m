@@ -1,5 +1,5 @@
 % clear
-cd('C:\Users\syf.DESKTOP-JNMNU9A\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level 2 series')
+cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\2 level 2 series')
 open_system('two_level_series_spwm.slx');
 %simOut = sim('two_level_series_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 N = 2^20;
