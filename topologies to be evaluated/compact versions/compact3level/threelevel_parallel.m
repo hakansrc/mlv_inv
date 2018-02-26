@@ -1,14 +1,14 @@
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\compact versions\compact3level')
 open_system('threelevel_spwm.slx');
-clear
+% clear
 N = 2^20;
 %% values of the signals
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
-sw_frequency = 2050; %Hz
+sw_frequency = 52050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 1; %duration of the model
+stop_time = 2; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
@@ -59,8 +59,8 @@ Ef = Vln_rms*cos(Load_Angle);
 Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
 Ls = n*Xs/ref_frequency; % n: number of interleaved inverters  
 
-DCLINK_Cap1 = 100e-6; %Farads
-DCLINK_Cap2 = 100e-6; %Farads
+DCLINK_Cap1 = 1000e-6; %Farads
+DCLINK_Cap2 = 1000e-6; %Farads
 %% commenting out the inverters depending on the 'n' value
 
 if n == 2
@@ -79,9 +79,75 @@ end
 % simOut = sim('three_levelparallel_spwm.slx'); %run the simulation
 threelevelspwm_p = sim('threelevel_spwm.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 
-% figure
-% plot(Phase_currents.time,[Phase_currents.signals(1).values]);
 
+%% Spectrum of DCLINK_voltage
+% Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
+DCLINK_voltage_spectrum = fft(threelevelspwm_p.get('DCLINK_voltage').data,N*2);
+DCLINK_voltage_spectrum_abs = abs(DCLINK_voltage_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK_voltage_spectrum_abs = DCLINK_voltage_spectrum_abs/max(DCLINK_voltage_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK voltage');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of DCLINK_current
+% Fs = numel(DCLINK_current.data);  %Sampling Frequency
+DCLINK_current_spectrum = fft(threelevelspwm_p.get('DCLINK_current').data,N*2);
+DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+DCLINK_current_spectrum_abs = DCLINK_current_spectrum_abs/max(DCLINK_current_spectrum_abs); % normalization
+figure;
+semilogy(freq,DCLINK_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of DCLINK current');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of VAB1 only
+% Fs = numel(LL_voltages.signals(1).values);  %Sampling Frequency
+LL_voltages_spectrum = fft(threelevelspwm_p.get('LL_voltages1').signals(1).values,N*2);
+LL_voltages_spectrum_abs = abs(LL_voltages_spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+LL_voltages_spectrum_abs = LL_voltages_spectrum_abs/max(LL_voltages_spectrum_abs); % normalization
+figure;
+semilogy(freq,LL_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of Vab1');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% Spectrum of Ia1 only
+% Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
+Ia_Spectrum = fft(threelevelspwm_p.get('Phase_currents1').signals(1).values,N*2);
+Ia_Spectrum_abs = abs(Ia_Spectrum(2:N/2));
+freq = (1:N/2-1)*Fs/N;   
+
+Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
+figure;
+semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+title('Spectrum of Ia1');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+%% plotting of THD's
+figure
+subplot(2,1,1);
+plot(threelevelspwm_p.get('THD_Ia1').time, 100*threelevelspwm_p.get('THD_Ia1').data)
+title('THD of Ia1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
+
+% subplot(3,1,2);
+% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% title('THD of Van');
+% xlabel('Time(sec)');
+% ylabel('THD (%)');
+
+subplot(2,1,2);
+plot(threelevelspwm_p.get('THD_Vab1').time, 100*threelevelspwm_p.get('THD_Vab1').data)
+title('THD of Vab1');
+xlabel('Time(sec)');
+ylabel('THD (%)');
+% close all
 
 timelength = round((numel(threelevelspwm_p.get('DCLINK_voltage').time))*0.8);
 maxvoltage = max(threelevelspwm_p.get('DCLINK_voltage').data(timelength:end));
