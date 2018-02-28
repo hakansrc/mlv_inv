@@ -1,14 +1,14 @@
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\compact versions\compact2level\onlyparallel')
 open_system('twolevel_parallel.slx');
-%clear
-N = 2^20;
+clear
+N = 2^11;
 %% values of the signals
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 1; %duration of the model
+stop_time = 0.5; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
@@ -55,7 +55,9 @@ Ef = Vln_rms*cos(Load_Angle);
 Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
 %%
 Ls = n*Xs/ref_frequency; % n: number of interleaved inverters  
-DCLINK_Cap = 100e-6; %Farads
+% % % % % % DCLINK_Cap = 200e-6; %Farads
+capacitorsabiti = 200e-6*14000;
+DCLINK_Cap = capacitorsabiti/sw_frequency;
 Rin = 1; %ohm
 Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
 
@@ -113,86 +115,147 @@ end
                 
 
 
-twolevel_interleaved = sim('twolevel_parallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
+% % % % % twolevel_interleaved = sim('twolevel_parallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
+% % % % % 
+% % % % % 
+% % % % % %% Spectrum of DCLINK_voltage
+% % % % % % Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
+% % % % % DCLINK_voltage_spectrum = fft(twolevel_interleaved.get('DCLINK_voltage').data,N*2);
+% % % % % DCLINK_voltage_spectrum_abs = abs(DCLINK_voltage_spectrum(2:N/2));
+% % % % % freq = (1:N/2-1)*Fs/N;   
+% % % % % 
+% % % % % DCLINK_voltage_spectrum_abs = DCLINK_voltage_spectrum_abs/max(DCLINK_voltage_spectrum_abs); % normalization
+% % % % % figure;
+% % % % % semilogy(freq,DCLINK_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+% % % % % title('Spectrum of DCLINK voltage');
+% % % % % xlabel('Frequency (Hz)');
+% % % % % ylabel('Magnitude');
+% % % % % %% Spectrum of DCLINK_current
+% % % % % % Fs = numel(DCLINK_current.data);  %Sampling Frequency
+% % % % % DCLINK_current_spectrum = fft(twolevel_interleaved.get('DCLINK_current').data,N*2);
+% % % % % DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(2:N/2));
+% % % % % freq = (1:N/2-1)*Fs/N;   
+% % % % % 
+% % % % % DCLINK_current_spectrum_abs = DCLINK_current_spectrum_abs/max(DCLINK_current_spectrum_abs); % normalization
+% % % % % figure;
+% % % % % semilogy(freq,DCLINK_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+% % % % % title('Spectrum of DCLINK current');
+% % % % % xlabel('Frequency (Hz)');
+% % % % % ylabel('Magnitude');
+% % % % % %% Spectrum of VAB1 only
+% % % % % % Fs = numel(LL_voltages.signals(1).values);  %Sampling Frequency
+% % % % % LL_voltages_spectrum = fft(twolevel_interleaved.get('LL_voltages1').signals(1).values,N*2);
+% % % % % LL_voltages_spectrum_abs = abs(LL_voltages_spectrum(2:N/2));
+% % % % % freq = (1:N/2-1)*Fs/N;   
+% % % % % 
+% % % % % LL_voltages_spectrum_abs = LL_voltages_spectrum_abs/max(LL_voltages_spectrum_abs); % normalization
+% % % % % figure;
+% % % % % semilogy(freq,LL_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+% % % % % title('Spectrum of Vab1');
+% % % % % xlabel('Frequency (Hz)');
+% % % % % ylabel('Magnitude');
+% % % % % %% Spectrum of Ia1 only
+% % % % % % Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
+% % % % % Ia_Spectrum = fft(twolevel_interleaved.get('Phase_currents1').signals(1).values,N*2);
+% % % % % Ia_Spectrum_abs = abs(Ia_Spectrum(2:N/2));
+% % % % % freq = (1:N/2-1)*Fs/N;   
+% % % % % 
+% % % % % Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
+% % % % % figure;
+% % % % % semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
+% % % % % title('Spectrum of Ia1');
+% % % % % xlabel('Frequency (Hz)');
+% % % % % ylabel('Magnitude');
+% % % % % %% plotting of THD's
+% % % % % figure
+% % % % % subplot(2,1,1);
+% % % % % plot(twolevel_interleaved.get('THD_Ia1').time, 100*twolevel_interleaved.get('THD_Ia1').data)
+% % % % % title('THD of Ia1');
+% % % % % xlabel('Time(sec)');
+% % % % % ylabel('THD (%)');
+% % % % % 
+% % % % % % subplot(3,1,2);
+% % % % % % plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
+% % % % % % title('THD of Van');
+% % % % % % xlabel('Time(sec)');
+% % % % % % ylabel('THD (%)');
+% % % % % 
+% % % % % subplot(2,1,2);
+% % % % % plot(twolevel_interleaved.get('THD_Vab1').time, 100*twolevel_interleaved.get('THD_Vab1').data)
+% % % % % title('THD of Vab1');
+% % % % % xlabel('Time(sec)');
+% % % % % ylabel('THD (%)');
+% % % % % close all
+% % % % % 
+% % % % % 
+% % % % % timelength = round((numel(twolevel_interleaved.get('DCLINK_voltage').time))*0.9);
+% % % % % maxvoltage = max(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+% % % % % minvoltage = min(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+% % % % % twolevel_DCRipple = maxvoltage - minvoltage;
+% % % % % ripplepercent = 100*twolevel_DCRipple/mean(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+% % % % % fprintf('Ripple Percent is: %d \n',ripplepercent)
+% % % % % fprintf('Vcrms value is: %d \n',mean(twolevel_interleaved.get('Vcrms').signals(1).values(timelength:end)));
+% % % % % fprintf('Icrms value is: %d \n',mean(twolevel_interleaved.get('Icrms').signals(1).values(end)));
+% % % % % 
+% % % % % 
 
 
-%% Spectrum of DCLINK_voltage
-% Fs = numel(DCLINK_voltage.data);  %Sampling Frequency
-DCLINK_voltage_spectrum = fft(twolevel_interleaved.get('DCLINK_voltage').data,N*2);
-DCLINK_voltage_spectrum_abs = abs(DCLINK_voltage_spectrum(2:N/2));
-freq = (1:N/2-1)*Fs/N;   
+count = 1;
+for sw_frequency = 1050:1000:25050
+    capacitorsabiti = 200e-6*14000;
+    DCLINK_Cap = 0.5*capacitorsabiti/sw_frequency;
+    Capacitor_values(count) = DCLINK_Cap;
+    Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
+    twolevel_interleaved = sim('twolevel_parallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
+    THDV_2level_IGBTVab1(count) = 100*twolevel_interleaved.get('THD_Vab1').data(end);
+    THDV_2level_IGBTIa1(count) = 100*twolevel_interleaved.get('THD_Ia1').data(end);
+    timelength = round((numel(twolevel_interleaved.get('DCLINK_voltage').time))*0.85);
+    maxvoltage = max(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+    minvoltage = min(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+    twolevel_DCRipple = maxvoltage - minvoltage;
+    ripplepercent = 100*twolevel_DCRipple/mean(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
+    ripplepercentvector(count) = ripplepercent;
+    ripplevector(count) = twolevel_DCRipple;  
+    DCLINK_Vcrms(count) = mean(twolevel_interleaved.get('Vcrms').signals(1).values(timelength:end));
+    DCLINK_Icrms(count) = mean(twolevel_interleaved.get('Icrms').signals(1).values(timelength:end));
+    
+    %% spectrums 
+    
+    DCLINK_voltage_spectrum = fft(twolevel_interleaved.get('DCLINK_voltage').data,N*2);
+    DCLINK_voltage_spectrum_abs(count,1:numel(abs(DCLINK_voltage_spectrum(2:N/2)))) = abs(DCLINK_voltage_spectrum(2:N/2));
+    DCLINK_current_spectrum = fft(twolevel_interleaved.get('DCLINK_current').data,N*2);
+    DCLINK_current_spectrum_abs(count,1:numel(abs(DCLINK_current_spectrum(2:N/2)))) = abs(DCLINK_current_spectrum(2:N/2));
+    
+    LLab_voltages_spectrum = fft(twolevel_interleaved.get('LL_voltages1').signals(1).values,N*2);
+    LLab_voltages_spectrum_abs(count,1:numel(abs(LLab_voltages_spectrum(2:N/2)))) = abs(LLab_voltages_spectrum(2:N/2));
+    
+    LLbc_voltages_spectrum = fft(twolevel_interleaved.get('LL_voltages1').signals(2).values,N*2);
+    LLbc_voltages_spectrum_abs(count,1:(numel(abs(LLbc_voltages_spectrum(2:N/2))))) = abs(LLbc_voltages_spectrum(2:N/2));
+    
+    LLca_voltages_spectrum = fft(twolevel_interleaved.get('LL_voltages1').signals(3).values,N*2);
+    LLca_voltages_spectrum_abs(count,1:numel(abs(LLca_voltages_spectrum(2:N/2)))) = abs(LLca_voltages_spectrum(2:N/2));
 
-DCLINK_voltage_spectrum_abs = DCLINK_voltage_spectrum_abs/max(DCLINK_voltage_spectrum_abs); % normalization
-figure;
-semilogy(freq,DCLINK_voltage_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK voltage');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
-%% Spectrum of DCLINK_current
-% Fs = numel(DCLINK_current.data);  %Sampling Frequency
-DCLINK_current_spectrum = fft(twolevel_interleaved.get('DCLINK_current').data,N*2);
-DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(2:N/2));
-freq = (1:N/2-1)*Fs/N;   
+    Ia_Spectrum = fft(twolevel_interleaved.get('Phase_currents1').signals(1).values,N*2);
+    Ia_Spectrum_abs(count,1:numel(abs(Ia_Spectrum(2:N/2)))) = abs(Ia_Spectrum(2:N/2));
+    
+    Ib_Spectrum = fft(twolevel_interleaved.get('Phase_currents1').signals(2).values,N*2);
+    Ib_Spectrum_abs(count,1:numel(abs(Ib_Spectrum(2:N/2)))) = abs(Ib_Spectrum(2:N/2));
+    
+    Ic_Spectrum = fft(twolevel_interleaved.get('Phase_currents1').signals(3).values,N*2);
+    Ic_Spectrum_abs(count,1:numel(abs(Ic_Spectrum(2:N/2)))) = abs(Ic_Spectrum(2:N/2));
+    
 
-DCLINK_current_spectrum_abs = DCLINK_current_spectrum_abs/max(DCLINK_current_spectrum_abs); % normalization
-figure;
-semilogy(freq,DCLINK_current_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of DCLINK current');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
-%% Spectrum of VAB1 only
-% Fs = numel(LL_voltages.signals(1).values);  %Sampling Frequency
-LL_voltages_spectrum = fft(twolevel_interleaved.get('LL_voltages1').signals(1).values,N*2);
-LL_voltages_spectrum_abs = abs(LL_voltages_spectrum(2:N/2));
-freq = (1:N/2-1)*Fs/N;   
-
-LL_voltages_spectrum_abs = LL_voltages_spectrum_abs/max(LL_voltages_spectrum_abs); % normalization
-figure;
-semilogy(freq,LL_voltages_spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Vab1');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
-%% Spectrum of Ia1 only
-% Fs = numel(Phase_currents.signals(1).values);  %Sampling Frequency
-Ia_Spectrum = fft(twolevel_interleaved.get('Phase_currents1').signals(1).values,N*2);
-Ia_Spectrum_abs = abs(Ia_Spectrum(2:N/2));
-freq = (1:N/2-1)*Fs/N;   
-
-Ia_Spectrum_abs =Ia_Spectrum_abs/max(Ia_Spectrum_abs); % normalization
-figure;
-semilogy(freq,Ia_Spectrum_abs) % Plot the magnitude of the samples of CTFT of the audio signal
-title('Spectrum of Ia1');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
-%% plotting of THD's
-figure
-subplot(2,1,1);
-plot(twolevel_interleaved.get('THD_Ia1').time, 100*twolevel_interleaved.get('THD_Ia1').data)
-title('THD of Ia1');
-xlabel('Time(sec)');
-ylabel('THD (%)');
-
-% subplot(3,1,2);
-% plot(twolevelspwm.get('THD_Van').time, 100*twolevelspwm.get('THD_Van').data)
-% title('THD of Van');
-% xlabel('Time(sec)');
-% ylabel('THD (%)');
-
-subplot(2,1,2);
-plot(twolevel_interleaved.get('THD_Vab1').time, 100*twolevel_interleaved.get('THD_Vab1').data)
-title('THD of Vab1');
-xlabel('Time(sec)');
-ylabel('THD (%)');
-% close all
-
-
-timelength = round((numel(twolevel_interleaved.get('DCLINK_voltage').time))*0.9);
-maxvoltage = max(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
-minvoltage = min(twolevel_interleaved.get('DCLINK_voltage').data(timelength:end));
-twolevel_DCRipple = maxvoltage - minvoltage;
-
-fprintf('Vcrms value is: %d \n',mean(twolevel_interleaved.get('Vcrms').signals(1).values(timelength:end)));
-fprintf('Icrms value is: %d \n',mean(twolevel_interleaved.get('Icrms').signals(1).values(end)));
+    freq(count,1:numel((1:N/2-1)*Fs/N)) = (1:N/2-1)*Fs/N;
+    
+    
+    
+    count = count+1;
+    fprintf('swf = %d , ripplepercent = %d , Capacitor size = %d',sw_frequency,ripplepercent,DCLINK_Cap);
+    fprintf('\n')
+end
+save('IGBTmodel1to25khz','Capacitor_values','THDV_2level_IGBTVab1','THDV_2level_IGBTIa1','ripplepercentvector'...
+    ,'ripplevector','DCLINK_Vcrms','DCLINK_Icrms','DCLINK_voltage_spectrum_abs','DCLINK_current_spectrum_abs',...
+    'LLab_voltages_spectrum_abs','LLbc_voltages_spectrum_abs','LLca_voltages_spectrum_abs','Ia_Spectrum_abs','Ib_Spectrum_abs','Ic_Spectrum_abs','freq');
 
 
 

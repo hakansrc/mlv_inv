@@ -1,14 +1,14 @@
 cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\compact versions\compact2level\seriesparallel')
 open_system('twolevel_seriesparallel.slx');
 clear
-N = 2^11;
+N = 2^20;
 %% values of the signals
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 2050; %Hz
-Sampling_time = 1/(15*sw_frequency); %sampling frequency of the model
+Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 2; %duration of the model
+stop_time = 1; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
@@ -17,7 +17,7 @@ Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
 DC_Voltage_Source = 540; %Volts
 Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 
-n = 2; %number of interleaved inverters
+n = 1; %number of interleaved inverters
 m = 2; %number of series DCLINKs (do not change this)
 
 interleaving_angle = 360/(n);
@@ -276,13 +276,13 @@ end
    
 for sw_frequency = 1050:1000:100050
     capacitorsabiti = 200e-6*14000;
-    DCLINK_Cap = 1.3*capacitorsabiti/sw_frequency;
+    DCLINK_Cap = capacitorsabiti/sw_frequency;
     Capacitor_values(count) = DCLINK_Cap;
     Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
     twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
     THDV_2levelseries_IGBTVab1(count) = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end);
     THDV_2levelseries_IGBTIa1(count) = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);
-    timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.85);
+    timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK_voltage').time))*0.85);
     
     maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
     minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
@@ -344,9 +344,7 @@ for sw_frequency = 1050:1000:100050
     Ic3_Spectrum_abs(count,1:numel(abs(Ic3_Spectrum(2:N/2)))) = abs(Ic3_Spectrum(2:N/2));   
     
     freq(count,1:numel((1:N/2-1)*Fs/N)) = (1:N/2-1)*Fs/N;   
-    sw_frequency
-    ripple1percent
-    ripple2percent
+    
     
 end
 
@@ -404,13 +402,13 @@ end
    
 for sw_frequency = 1050:1000:100050
     capacitorsabiti = 200e-6*14000;
-    DCLINK_Cap = 1.3*capacitorsabiti/sw_frequency;
+    DCLINK_Cap = capacitorsabiti/sw_frequency;
     Capacitor_values(count) = DCLINK_Cap;
     Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
     twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
     THDV_2levelseries_IGBTVab1(count) = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end);
     THDV_2levelseries_IGBTIa1(count) = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);
-    timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.85);
+    timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK_voltage').time))*0.85);
     
     maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
     minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').data(timelength:end));
@@ -504,9 +502,7 @@ for sw_frequency = 1050:1000:100050
     
     
     freq(count,1:numel((1:N/2-1)*Fs/N)) = (1:N/2-1)*Fs/N;   
-    sw_frequency
-    ripple1percent
-    ripple2percent    
+    
     
 end
 save('topologyB_n1','Capacitor_values','THDV_2levelseries_IGBTVab1','THDV_2levelseries_IGBTIa1'...
