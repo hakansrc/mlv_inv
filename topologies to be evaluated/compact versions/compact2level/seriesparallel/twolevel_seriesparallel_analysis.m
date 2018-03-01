@@ -347,6 +347,7 @@ for sw_frequency = 1050:1000:100050
     sw_frequency
     ripple1percent
     ripple2percent
+    count = count + 1;
     
 end
 
@@ -499,6 +500,8 @@ for sw_frequency = 1050:1000:100050
     Ib4_Spectrum_abs(count,1:numel(abs(Ib4_Spectrum(2:N/2)))) = abs(Ib4_Spectrum(2:N/2));    
     Ic4_Spectrum = fft(twolevelseriesparallel_interleaved.get('Phase_currents4').signals(3).values,N*2);
     Ic4_Spectrum_abs(count,1:numel(abs(Ic4_Spectrum(2:N/2)))) = abs(Ic4_Spectrum(2:N/2));  
+    
+    count = count+1;
     
     
     
