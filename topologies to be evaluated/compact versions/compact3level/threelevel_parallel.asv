@@ -1,12 +1,12 @@
 cd('C:\Users\REZA\Documents\GitHub\mlv_inv\topologies to be evaluated\compact versions\compact3level')
 open_system('threelevel_spwm.slx');
-clear
+
 
 N = 2^20;
 %% values of the signals
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
-sw_frequency = 6050; %Hz
+sw_frequency = 1050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 0.5/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
 stop_time = 0.7; %duration of the model
@@ -18,7 +18,7 @@ Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
 DC_Voltage_Source = 540; %Volts
 Load_Nominal_Freq = ref_frequency/(2*pi); %Hz
 
-n = 2; %number of parallel modules (2 at max)
+n = 1; %number of parallel modules (2 at max)
 
 interleaving_angle = 360/n;
 intangle1 = 0;
@@ -197,8 +197,8 @@ count = 1;
 for sw_frequency = 1050:5000:101050
 
     capacitorsabiti = 200e-6*14000;
-    DCLINK_Cap1 = 0.4*capacitorsabiti/sw_frequency;
-    DCLINK_Cap2 = 0.4*capacitorsabiti/sw_frequency;
+    DCLINK_Cap1 = 1.20*capacitorsabiti/sw_frequency;
+    DCLINK_Cap2 = 1.20*capacitorsabiti/sw_frequency;
     Capacitor_values = DCLINK_Cap1; %tobesaved
     Sampling_time = 1/(20*50000); %sampling frequency of the model
     Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
@@ -366,8 +366,8 @@ end
 count = 1;
 for sw_frequency = 1050:5000:101050
     capacitorsabiti = 200e-6*14000;
-    DCLINK_Cap1 = 0.7*0.4*capacitorsabiti/sw_frequency;
-    DCLINK_Cap2 = 0.7*0.4*capacitorsabiti/sw_frequency;
+    DCLINK_Cap1 = 0.70*capacitorsabiti/sw_frequency;
+    DCLINK_Cap2 = 0.70*capacitorsabiti/sw_frequency;
     Capacitor_values = DCLINK_Cap1; %tobesaved
     Sampling_time = 1/(20*50000); %sampling frequency of the model
     Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
