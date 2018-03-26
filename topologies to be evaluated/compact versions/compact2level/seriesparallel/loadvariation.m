@@ -8,7 +8,7 @@ ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 6050; %Hz
 Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
 Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 0.7; %duration of the model
+stop_time = 0.02; %duration of the model
 %% Load&Source settings
 Load_Real_Power = 8000; %W
 Load_Power_Factor = 0.9; 
@@ -33,7 +33,7 @@ Vln_rms = Vll_rms/sqrt(3);
 Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
 % Zbase = Vll_rms^2/Load_Apparent_Power;
 % Xs = 0.5*Zbase;
-theta = acos((Load_Real_Power/3)/(Vln_rms*Iline));
+% theta = acos((Load_Real_Power/3)/(Vln_rms*Iline));
 %% finding by force
 % for delta = 0:0.000001*pi:2*pi
 %     theformula = sin(delta)*Vln_rms/(cos(theta-delta)*Xs*Iline);
@@ -68,7 +68,6 @@ Vin = DC_Voltage_Source + Rin*(Load_Real_Power/DC_Voltage_Source);
 
 
 %% commenting out the inverters depending on the 'n' value
-n = 1
 if n == 2
     set_param('twolevel_seriesparallel/Inverter1','commented','off')
     set_param('twolevel_seriesparallel/Inverter2','commented','off')
@@ -101,7 +100,7 @@ if n == 0
     set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
 end
     
-     %%           
+                
 
 %  twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 % % % % % % % % % % % % % %% Spectrum of DCLINK1_voltage
@@ -244,7 +243,6 @@ Ls = n*m*Xs/ref_frequency; % n: number of interleaved inverters
 
 
 %% commenting out the inverters depending on the 'n' value
-n =2 ;
 if n == 2
     set_param('twolevel_seriesparallel/Inverter1','commented','off')
     set_param('twolevel_seriesparallel/Inverter2','commented','off')
@@ -276,21 +274,53 @@ if n == 0
     set_param('twolevel_seriesparallel/Inverter 3 Load','commented','on')
     set_param('twolevel_seriesparallel/Inverter 4 Load','commented','on')
 end
-    
    
-for sw_frequency = 1050:1000:40050
-    tic
+
+%%
+
+Load_Real_Power = 8000
+%Load_Power_Factor = 0.9;
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+Vll_rms = ma*DC_Voltage_Source*0.612/m;
+Vln_rms = Vll_rms/sqrt(3);
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3))
+
+Load_Angle = acos(Load_Power_Factor)
+Ef = Vln_rms*cos(Load_Angle)
+Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
+Ls = n*m*Xs/ref_frequency % n: number of interleaved inverters 
+        
+%%
+   
+for sw_frequency = 51050
+    for Load_Real_Power = 800:800:8000
+    %       Load_Real_Power = 8000; %W
+Load_Power_Factor = 0.9;
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+Vll_rms = ma*DC_Voltage_Source*0.612/m;
+Vln_rms = Vll_rms/sqrt(3);
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+
+Load_Angle = acos(Load_Power_Factor);
+Ef = Vln_rms*cos(Load_Angle);
+Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
+Ls = n*m*Xs/ref_frequency; % n: number of interleaved inverters 
+        
+        
     capacitorsabiti = 200e-6*14000;
     DCLINK_Cap = 1.35*capacitorsabiti/sw_frequency;
     Capacitor_values = DCLINK_Cap; %tobesaved
-    Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
+    Sampling_time = 1/(100*sw_frequency); %sampling frequency of the model
     Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
     twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
-    N = numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values);
-    THD_Vab1 = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end); %tobesaved
-    THD_Ia1 = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);%tobesaved
-    THD_Vab3 = 100*twolevelseriesparallel_interleaved.get('THD_Vab3').data(end); %tobesaved
-    THD_Ia3 = 100*twolevelseriesparallel_interleaved.get('THD_Ia3').data(end);%tobesaved
+    
+%     N = numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values);
+%     THD_Vab1 = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end); %tobesaved
+%     THD_Ia1 = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);%tobesaved
+%     THD_Vab3 = 100*twolevelseriesparallel_interleaved.get('THD_Vab3').data(end); %tobesaved
+%     THD_Ia3 = 100*twolevelseriesparallel_interleaved.get('THD_Ia3').data(end);%tobesaved
 %     
 %     timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.9);
 %     
@@ -311,7 +341,7 @@ for sw_frequency = 1050:1000:40050
 %     
 %     DCLINK_Ic1rms = mean(twolevelseriesparallel_interleaved.get('Ic1rms').signals(1).values(timelength:end)); %tobesaved
 %     DCLINK_Ic2rms = mean(twolevelseriesparallel_interleaved.get('Ic2rms').signals(1).values(timelength:end)); %tobesaved
-% %     
+%     
 %     %% spectrums
 %     DCLINK_cap1_voltage_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values,N)/(0.5*N);
 %     DCLINK_cap1_voltage_spectrum_abs = abs(DCLINK_cap1_voltage_spectrum(1:(N/2+1)));
@@ -372,7 +402,7 @@ for sw_frequency = 1050:1000:40050
 %     freq = (0:(N/2))*Fs/N; 
 %     
 %     
-  
+%   
     
 %     Ids1_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').data;
 %     Ids1_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').time;
@@ -397,11 +427,11 @@ for sw_frequency = 1050:1000:40050
 %     
 %     Vds2_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').data;
 %     Vds2_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').time;
-      
+%       
 %     clc 
 %     fprintf('swf = %d , ripple1percent = %d , ripple2percen = %d, Capacitor size = %d',sw_frequency,ripple1percent,ripple2percent,DCLINK_Cap);
 %     fprintf('\n')
-    
+%     
 %     count = count + 1;
 %     savename = strcat('topology_B_',num2str(sw_frequency),'Hz');
 %     save(savename,'Capacitor_values','THD_Vab1','THD_Ia1','THD_Vab3','THD_Ia3'...
@@ -416,15 +446,16 @@ for sw_frequency = 1050:1000:40050
 %     ,'DCLINK_cap2_current_spectrum_abs','LLab1_voltages_spectrum_abs','LLbc1_voltages_spectrum_abs','LLca1_voltages_spectrum_abs',...
 %     'Ia1_Spectrum_abs','Ib1_Spectrum_abs','Ic1_Spectrum_abs','LLab3_voltages_spectrum_abs','LLbc3_voltages_spectrum_abs','LLca3_voltages_spectrum_abs'...
 %     ,'Ia3_Spectrum_abs','Ib3_Spectrum_abs','Ic3_Spectrum_abs','freq','phasecurrentstime','Ia1','Ia3','Vab1','Vab3');
-    savename = strcat('fast_topology_B_THDs',num2str(sw_frequency),'Hz');
-%     save(savename, 'Capacitor_values')
 
-sw_frequency
-THD_Ia1
-    save(savename,'THD_Vab1','THD_Ia1','THD_Vab3','THD_Ia3')
-    %...
-    %,'ripple1vector','ripple1percent','ripple2vector','ripple2percent','DCLINK_Vc1rms','DCLINK_Vc2rms','DCLINK_Ic1rms','DCLINK_Ic2rms')
-    toc
+    savename = strcat('final_topology_B_eff_load_',num2str(Load_Real_Power),'W');
+    Isw1 = twolevelseriesparallel_interleaved.get('Isw1').signals.values;
+    Isw1_timedata = twolevelseriesparallel_interleaved.get('Isw1').time;
+    Vab = twolevelseriesparallel_interleaved.get('LL_voltages1').signals(1).values;
+    timevector = twolevelseriesparallel_interleaved.get('LL_voltages1').time;
+    Ia1 = twolevelseriesparallel_interleaved.get('Phase_currents1').signals(1).values;
+    save(savename, 'Isw1', 'Isw1_timedata','Vab','timevector','Ia1');
+    % Load_Real_Power
+    end
 end
 
 
@@ -483,26 +514,38 @@ if n == 0
 end
     
    
-for sw_frequency = 1050:1000:40050
-    tic
+for sw_frequency = 51050
+    for Load_Real_Power = 800:800:8000
+    %       Load_Real_Power = 8000; %W
+Load_Power_Factor = 0.9;
+Load_Apparent_Power = Load_Real_Power/Load_Power_Factor; %VA
+Load_Reactive_Power = Load_Apparent_Power*sin(acos(Load_Power_Factor)); %VAr
+Vll_rms = ma*DC_Voltage_Source*0.612/m;
+Vln_rms = Vll_rms/sqrt(3);
+Iline = Load_Apparent_Power/(Vll_rms*sqrt(3));
+
+Load_Angle = acos(Load_Power_Factor);
+Ef = Vln_rms*cos(Load_Angle);
+Xs = sqrt((Vln_rms^2-Ef^2)/Iline^2);
+Ls = n*m*Xs/ref_frequency; % n: number of interleaved inverters 
     capacitorsabiti = 200e-6*14000;
     DCLINK_Cap = 0.65*1.35*capacitorsabiti/sw_frequency;
     Capacitor_values = DCLINK_Cap; %tobesaved
-    Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
+    Sampling_time = 1/(100*sw_frequency); %sampling frequency of the model
     Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
     twolevelseriesparallel_interleaved = sim('twolevel_seriesparallel.slx','SimulationMode','normal','AbsTol','1e-6','SaveState','on','StateSaveName','xout','SaveOutput','on','OutputSaveName','yout','SaveFormat', 'Dataset');
 %     N = numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values);
-
-    THD_Vab1 = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end); %tobesaved
-    THD_Ia1 = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);%tobesaved
-    THD_Vab3 = 100*twolevelseriesparallel_interleaved.get('THD_Vab3').data(end); %tobesaved
-    THD_Ia3 = 100*twolevelseriesparallel_interleaved.get('THD_Ia3').data(end);%tobesaved
-    THD_Vab2 = 100*twolevelseriesparallel_interleaved.get('THD_Vab2').data(end); %tobesaved
-    THD_Ia2 = 100*twolevelseriesparallel_interleaved.get('THD_Ia2').data(end);%tobesaved
-    THD_Vab4 = 100*twolevelseriesparallel_interleaved.get('THD_Vab4').data(end); %tobesaved
-    THD_Ia4 = 100*twolevelseriesparallel_interleaved.get('THD_Ia4').data(end);%tobesaved
-    timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.9);
-    
+% 
+%     THD_Vab1 = 100*twolevelseriesparallel_interleaved.get('THD_Vab1').data(end); %tobesaved
+%     THD_Ia1 = 100*twolevelseriesparallel_interleaved.get('THD_Ia1').data(end);%tobesaved
+%     THD_Vab3 = 100*twolevelseriesparallel_interleaved.get('THD_Vab3').data(end); %tobesaved
+%     THD_Ia3 = 100*twolevelseriesparallel_interleaved.get('THD_Ia3').data(end);%tobesaved
+%     THD_Vab2 = 100*twolevelseriesparallel_interleaved.get('THD_Vab2').data(end); %tobesaved
+%     THD_Ia2 = 100*twolevelseriesparallel_interleaved.get('THD_Ia2').data(end);%tobesaved
+%     THD_Vab4 = 100*twolevelseriesparallel_interleaved.get('THD_Vab4').data(end); %tobesaved
+%     THD_Ia4 = 100*twolevelseriesparallel_interleaved.get('THD_Ia4').data(end);%tobesaved
+%     timelength = round((numel(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').time))*0.9);
+%     
 %     maxvoltage = max(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values(timelength:end));
 %     minvoltage = min(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values(timelength:end));
 %     twolevelseriesparallel_DC1Ripple = maxvoltage - minvoltage;
@@ -605,36 +648,36 @@ for sw_frequency = 1050:1000:40050
 %     Vab2 = twolevelseriesparallel_interleaved.get('LL_voltages2').signals(1).values;
 %     Vab3 = twolevelseriesparallel_interleaved.get('LL_voltages3').signals(1).values;
 %     Vab4 = twolevelseriesparallel_interleaved.get('LL_voltages4').signals(1).values;
-%     
-% % %     Ids1_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').data;
-% % %     Ids1_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').time;
-% % %     
-% % %     Ids1_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_3').data;
-% % %     Ids1_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_3').time;
-% % %     
-% % %     Ids2_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_1').data;
-% % %     Ids2_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_1').time;
-% % %     
-% % %     Ids2_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_3').data;
-% % %     Ids2_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_3').time;
-% % %     
-% % %     Vds1_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_1').data;
-% % %     Vds1_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_1').time;
-% % %     
-% % %     Vds1_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_3').data;
-% % %     Vds1_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_3').time;
-% % %     
-% % %     Vds2_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_1').data;
-% % %     Vds2_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_1').time;
-% % %     
-% % %     Vds2_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').data;
-% % %     Vds2_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').time;
-% % %     
-%     count = count+1;
-%     
-%     
-%     
-%     
+    
+% %     Ids1_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').data;
+% %     Ids1_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_1').time;
+% %     
+% %     Ids1_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_3').data;
+% %     Ids1_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids1_3').time;
+% %     
+% %     Ids2_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_1').data;
+% %     Ids2_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_1').time;
+% %     
+% %     Ids2_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_3').data;
+% %     Ids2_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Ids2_3').time;
+% %     
+% %     Vds1_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_1').data;
+% %     Vds1_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_1').time;
+% %     
+% %     Vds1_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_3').data;
+% %     Vds1_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds1_3').time;
+% %     
+% %     Vds2_Inv1_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_1').data;
+% %     Vds2_Inv1_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_1').time;
+% %     
+% %     Vds2_Inv3_data(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').data;
+% %     Vds2_Inv3_time(count,1:numberelement) = twolevelseriesparallel_interleaved.get('Vds2_3').time;
+% %     
+    count = count+1;
+    
+    
+    
+    
 %     freq = (0:(N/2))*Fs/N; 
 %     clc
 %     fprintf('swf = %d , ripple1percent = %d, ripple2percent = %d  , Capacitor size = %d',sw_frequency,ripple1percent,ripple2percent,DCLINK_Cap);
@@ -656,17 +699,16 @@ for sw_frequency = 1050:1000:40050
 %     ,'Ia3_Spectrum_abs','Ib3_Spectrum_abs','Ic3_Spectrum_abs','LLab2_voltages_spectrum_abs','LLbc2_voltages_spectrum_abs','LLca2_voltages_spectrum_abs',...
 %     'Ia2_Spectrum_abs','Ib2_Spectrum_abs','Ic2_Spectrum_abs','LLab4_voltages_spectrum_abs','LLbc4_voltages_spectrum_abs','LLca4_voltages_spectrum_abs',...
 %     'Ia4_Spectrum_abs','Ib4_Spectrum_abs','Ic4_Spectrum_abs','freq','phasecurrentstime','Ia1','Ia3','Vab1','Vab3','Ia4','Ia2','Vab4','Vab2');
-
-    savename = strcat('fast_topology_C_THDs',num2str(sw_frequency),'Hz');
-%     save(savename, 'Capacitor_values')
-   save(savename,'THD_Vab1','THD_Ia1','THD_Vab3','THD_Ia3');
-   %...
-    %,'ripple1vector','ripple1percent','ripple2vector','ripple2percent','DCLINK_Vc1rms','DCLINK_Vc2rms','DCLINK_Ic1rms','DCLINK_Ic2rms')
- sw_frequency
-THD_Ia1   
-toc
-
-%     
+% 
+    savename = strcat('final_topology_C_eff_load_',num2str(Load_Real_Power),'W');
+    Isw1 = twolevelseriesparallel_interleaved.get('Isw1').signals.values;
+    Isw1_timedata = twolevelseriesparallel_interleaved.get('Isw1').time;
+    Vab = twolevelseriesparallel_interleaved.get('LL_voltages1').signals(1).values;
+    timevector = twolevelseriesparallel_interleaved.get('LL_voltages1').time;
+    Ia1 = twolevelseriesparallel_interleaved.get('Phase_currents1').signals(1).values;
+    save(savename, 'Isw1', 'Isw1_timedata','Vab','timevector','Ia1');
+Load_Real_Power
+    end
 end
 
 % % save('efficiencypart_sp_n2','Ids1_Inv1_data','Ids1_Inv1_time','Ids1_Inv3_data'...
