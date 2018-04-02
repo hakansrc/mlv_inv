@@ -1,7 +1,9 @@
-function x = loadsourcesettings(topology_type,ns,np)
+function [Vin,Pout, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, Lsm, THD_mean_frequency,Load_Nominal_Freq]  = loadsourcesettings(topology_type,ns,np)
+ref_frequency = 2*pi*50;
 Pout = 8000; %W
 Poutm = Pout/(ns*np);
 Ls = 13.8e-3; %will be decided based on topology
+Lsm = Ls;
 Ef = 155;
 Efm = Ef/ns;
 Vdc = 540;
@@ -20,8 +22,10 @@ intangle1 = 0;
 intangle2 = intangle1 + interleaving_angle;
 intangle3 =intangle1;
 intangle4 = intangle2;
-
-
+Rin = 1; %ohm
+Vin = Vdc + Rin*(Pout/Vdc);
+THD_mean_frequency = 10;
+Load_Nominal_Freq = 50;
 
 
 end
