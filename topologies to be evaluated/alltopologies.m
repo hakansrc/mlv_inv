@@ -20,3 +20,16 @@ topology_type = input('Please specify the topology type','s');
 
 DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
 
+%% datas to be collected 0 not to collect, 1 to collect
+dclink_cur_rms = 1;
+dclink_volt_mean = 1;
+dclink_cur_waveform = 1;
+dclink_vol_waveform = 1;
+phase_current_waveforms = 1;
+phase_current_THD = 1;
+pp_voltage_waveforms = 1;
+pp_voltage_THD = 1;
+switch_waveforms = 1;
+dataselector(topology_type,dclink_cur_rms,...
+    dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
+    phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms) ;

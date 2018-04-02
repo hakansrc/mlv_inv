@@ -41,9 +41,9 @@ if (topology_type == 'B')||(topology_type == 'C')
     end
 end
 if (topology_type == 'D')||(topology_type == 'E')
-    set_param('all_topologies/Topology_A','commented','off')
-    set_param('all_topologies/Topology_BC','commented','off')
-    set_param('all_topologies/Topology_DE','commented','on')
+    set_param('all_topologies/Topology_A','commented','on')
+    set_param('all_topologies/Topology_BC','commented','on')
+    set_param('all_topologies/Topology_DE','commented','off')
     if topology_type == 'D'
         np = 1
         ns = 1
