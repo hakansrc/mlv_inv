@@ -1,4 +1,5 @@
 function [np ns] = commentouter(topology_type)
+global ns np
 if topology_type == 'A'
     set_param('all_topologies/Topology_A','commented','off')
     set_param('all_topologies/Topology_BC','commented','on')
