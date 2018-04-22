@@ -6,12 +6,13 @@ global ma ref_frequency sw_frequency Sampling_time Fs stop_time
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 1000; %Hz
-Sampling_time = 1/(20*sw_frequency); %sampling frequency of the model
+Sampling_time = 1e-4; %sampling frequency of the model
 Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
 stop_time = 1; %duration of the model
 %%
 global topology_type np ns
-topology_type = input('Please specify the topology type','s');
+% topology_type = input('Please specify the topology type','s');
+topology_type = 'A';
 [np ns] = topology_decider(topology_type);
  
 [Vin,Pout, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
@@ -37,26 +38,43 @@ dataselector(topology_type,dclink_cur_rms,...
     dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
     phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes) ;
 %% loop settings
-startfreq = 1000;
+startfreq = 2000;
 stopfreq = 100000;
-increment = 1000;
-
-%% spectrum trials for continous case
-N = numel(A_LL_voltages1.signals.values(:,1));
-Fs = N/stop_time;
-
-    Ia1_Spectrum = fft(A_Phase_currents1.signals.values(:,1),N)/(0.5*N);
-    Ia1_Spectrum_abs = abs(Ia1_Spectrum(1:(N/2+1)));    
-%     Ib1_Spectrum = fft(twolevelseriesparallel_interleaved.get('Phase_currents1').signals(2).values,N)/(0.5*N);
-%     Ib1_Spectrum_abs = abs(Ib1_Spectrum(1:(N/2+1)));    
-%     Ic1_Spectrum = fft(twolevelseriesparallel_interleaved.get('Phase_currents1').signals(3).values,N)/(0.5*N);
-%     Ic1_Spectrum_abs = abs(Ic1_Spectrum(1:(N/2+1)));    
-    
-    freq = (0:(N/2))*Fs/N; 
-
-plot(freq,Ia1_Spectrum_abs)
+increment = 2000;
+loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
+    Lsm,Efm,dclink_cur_rms,...
+    dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
+    phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
+%% 
 
 
+
+
+
+
+
+%% spectrum trials
+%     N = numel(A_Phase_currents1.signals.values(:,1));
+%     LLab1_voltages_spectrum = fft(A_Phase_currents1.signals.values(:,1),N)/(0.5*N);
+%     LLab1_voltages_spectrum_abs = abs(LLab1_voltages_spectrum(1:(N/2+1)));    
+% %     LLbc1_voltages_spectrum = fft(twolevelseriesparallel_interleaved.get('LL_voltages1').signals(2).values,N)/(0.5*N);
+% %     LLbc1_voltages_spectrum_abs = abs(LLbc1_voltages_spectrum(1:(N/2+1)));    
+% %     LLca1_voltages_spectrum = fft(twolevelseriesparallel_interleaved.get('LL_voltages1').signals(3).values,N)/(0.5*N);
+% %     LLca1_voltages_spectrum_abs = abs(LLca1_voltages_spectrum(1:(N/2+1)));
+% %     
+%     freq = (0:(N/2))*Fs/N; 
+%     semilogy(freq,LLab1_voltages_spectrum_abs)
+%     %%
+%     N = numel(A_DCLINK_current.signals.values(6000000:end));
+%     DCLINK_current_spectrum =fft(A_DCLINK_current.signals.values(6000000:end),N)/(0.5*N);
+%     DCLINK_current_spectrum_abs = abs(DCLINK_current_spectrum(1:(N/2+1)));
+%         freq = (0:(N/2))*Fs/N; 
+%     semilogy(freq,DCLINK_current_spectrum_abs)
+% 
+% %% taking only one cycle
+% 
+% plot(A_Phase_currents1.time(9800000:end),A_Phase_currents1.signals.values(9800000:end,1))
+% 
 
 
 
