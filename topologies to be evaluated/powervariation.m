@@ -1,4 +1,5 @@
-function [sw_frequency] = powervariation(startpower,endpower,increment,Pout)
+function [] = powervariation(Pout,sw_frequency,topology_type)
+sim('all_topologies.slx');
 
 if topology_type == 'A'
     savename = strcat('A_sw_voltages_',num2str(Pout),'_W');
@@ -92,4 +93,5 @@ if topology_type == 'E'
     E_diode_currents.time = DE_Diode1_current.time(9800000:end);
     save(savename,'E_diode_currents');
 end
+Pout
 end
