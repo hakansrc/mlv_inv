@@ -6,13 +6,13 @@ global ma ref_frequency sw_frequency Sampling_time Fs stop_time
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 1000; %Hz
-Sampling_time = 1e-6; %sampling frequency of the model
+Sampling_time = 1e-7; %sampling frequency of the model
 Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 0.04; %duration of the model
+stop_time = 0.2; %duration of the model
 %%
 global topology_type np ns
 % topology_type = input('Please specify the topology type','s');
-topology_type = 'A';
+topology_type = 'E';
 [np ns] = topology_decider(topology_type);
 Pout = 8000;
 [Vin, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
@@ -42,21 +42,30 @@ startfreq = 2000;
 stopfreq = 100000;
 increment = 2000;
 for sw_frequency = startfreq:increment:stopfreq
-    DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm)
+    DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
 tic
 loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
     Lsm,Efm,dclink_cur_rms,...
     dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
     phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
 toc
+sw_frequency
 end
-%% 
+%% power variation
+startpower = 1000; %W
+endpower = 8000; %W
+increment = 500; %w
+if topology_type =='A'
+    sw_frequency = 10000;
+else
+    sw_frequency = 50000;
+end
+for Pout = startpower:increment:endpower
+DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
+powervariation(Pout,sw_frequency)
 
-sim('all_topologies.slx');
 
-
-
-
+end
 
 %% spectrum trials
 %     N = numel(A_Phase_currents1.signals.values(:,1));

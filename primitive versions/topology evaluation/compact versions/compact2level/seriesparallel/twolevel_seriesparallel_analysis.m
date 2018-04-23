@@ -522,7 +522,7 @@ for sw_frequency = 1050:1000:40050
 %     DCLINK_Ic2rms = mean(twolevelseriesparallel_interleaved.get('Ic2rms').signals(1).values(timelength:end)); %tobesaved
 %     
 %     %% spectrums
-%     DCLINK_cap1_voltage_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values,N)/(0.5*N);
+    DCLINK_cap1_voltage_spectrum = fft(twolevelseriesparallel_interleaved.get('DCLINK1_voltage').signals.values,N)/(0.5*N);
 %     DCLINK_cap1_voltage_spectrum_abs = abs(DCLINK_cap1_voltage_spectrum(1:(N/2+1)));
 %     DCLINK_cap1_voltage_spectrum_abs(1) = DCLINK_cap1_voltage_spectrum_abs(1)/2;
 %     

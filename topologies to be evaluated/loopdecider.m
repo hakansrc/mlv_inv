@@ -1,7 +1,10 @@
 function [sw_frequency] = loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm,dclink_cur_rms,...
     dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
     phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes)
+    sim('all_topologies.slx');
+
 if topology_type == 'A'
+    
     if dclink_cur_rms == 1
         savename = strcat('A_dclink_cur_rms_',num2str(sw_frequency),'Hz');
         A_dclink_cur_rms = mean(A_DCLINK_current_rms.signals.values(9200000:end));
@@ -44,10 +47,10 @@ if topology_type == 'A'
     end
     if pp_voltage_waveforms == 1
         savename = strcat('A_ppvoltages1_',num2str(sw_frequency),'Hz');
-        A_LL_voltages1.signals.values(:,1) = A_LL_voltages1.signals.values(7000000:end,1);
-        A_LL_voltages1.signals.values(:,2) = A_LL_voltages1.signals.values(7000000:end,2);
-        A_LL_voltages1.signals.values(:,3) = A_LL_voltages1.signals.values(7000000:end,3);
-        A_LL_voltages1.time = A_LL_voltages1.time(7000000:end);
+        A_LL_voltages.signals.values(:,1) = A_LL_voltages1.signals.values(7000000:end,1);
+        A_LL_voltages.signals.values(:,2) = A_LL_voltages1.signals.values(7000000:end,2);
+        A_LL_voltages.signals.values(:,3) = A_LL_voltages1.signals.values(7000000:end,3);
+        A_LL_voltages.time = A_LL_voltages1.time(7000000:end);
         save(savename,'A_LL_voltages1')
     end
     if switch_waveforms== 1
@@ -158,13 +161,13 @@ if topology_type == 'C'
         savename = strcat('C_dclink_cur_rmses_',num2str(sw_frequency),'Hz');
         C_dclink1_cur_rms = mean(BC_DCLINK1_current_rms.signals.values(9200000:end));
         C_dclink2_cur_rms = mean(BC_DCLINK2_current_rms.signals.values(9200000:end));
-        save(savename,'C_dclink1_cur_rms','B_dclink2_cur_rms')
+        save(savename,'C_dclink1_cur_rms','C_dclink2_cur_rms')
     end
     if dclink_volt_mean == 1
         savename = strcat('C_dclink_volt_means_',num2str(sw_frequency),'Hz');
         C_dclink1_volt_mean = mean(BC_DCLINK1_voltage_mean.signals.values(9200000:end));
         C_dclink2_volt_mean = mean(BC_DCLINK2_voltage_mean.signals.values(9200000:end));
-        save(savename,'C_dclink1_volt_mean','B_dclink2_volt_mean')
+        save(savename,'C_dclink1_volt_mean','C_dclink2_volt_mean')
     end
     if dclink_cur_waveform == 1
         savename = strcat('C_dclink_cur_waveform_',num2str(sw_frequency),'Hz');
@@ -172,7 +175,7 @@ if topology_type == 'C'
         C_DCL2_current.signals.values = BC_DCLINK2_current.signals.values(7000000:end);
         C_DCL1_current.time = BC_DCLINK1_voltage.time(7000000:end);
         C_DCL2_current.time = C_DCL1_current.time;
-        save(savename,'C_DCL1_current','B_DCL2_current')
+        save(savename,'C_DCL1_current','C_DCL2_current')
     end
     if dclink_vol_waveform==1
         savename = strcat('C_dclink_volt_waveform_',num2str(sw_frequency),'Hz');
@@ -180,7 +183,7 @@ if topology_type == 'C'
         C_DCL2_voltage.signals.values = BC_DCLINK2_voltage.signals.values(7000000:end);
         C_DCL1_voltage.time = BC_DCLINK1_voltage.time(7000000:end);
         C_DCL2_voltage.time = C_DCL1_voltage.time;
-        save(savename,'C_DCL1_voltage','B_DCL2_voltage')
+        save(savename,'C_DCL1_voltage','C_DCL2_voltage')
     end
     if phase_current_waveforms == 1
         savename = strcat('C_phasecurrents1_',num2str(sw_frequency),'Hz');
@@ -265,7 +268,7 @@ if topology_type == 'C'
             C_LL_voltages2.signals.values(:,1) = BC_LL_voltages2.signals.values(7000000:end,1);
             C_LL_voltages2.signals.values(:,2) = BC_LL_voltages2.signals.values(7000000:end,2);
             C_LL_voltages2.signals.values(:,3) = BC_LL_voltages2.signals.values(7000000:end,3);
-            C_LL_voltages2.time = BC_LL_voltage2.time(7000000:end);
+            C_LL_voltages2.time = BC_LL_voltages2.time(7000000:end);
             save(savename,'C_LL_voltages2')
             
             savename = strcat('C_ppvoltages4_',num2str(sw_frequency),'Hz');
