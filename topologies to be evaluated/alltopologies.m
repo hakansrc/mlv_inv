@@ -6,17 +6,17 @@ global ma ref_frequency sw_frequency Sampling_time Fs stop_time
 ma = 0.9;
 ref_frequency = 2*pi*50; %radians per sec
 sw_frequency = 1000; %Hz
-Sampling_time = 1e-7; %sampling frequency of the model
+Sampling_time = 1e-6; %sampling frequency of the model
 Fs = 1/Sampling_time;  %Sampling Frequency for the spectrum analysis  %5e-6 goes up to 50kHz band
-stop_time = 0.005; %duration of the model
+stop_time = 0.04; %duration of the model
 %%
 global topology_type np ns
 % topology_type = input('Please specify the topology type','s');
-topology_type = 'E';
+topology_type = 'A';
 [np ns] = topology_decider(topology_type);
- 
-[Vin,Pout, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
-    Lsm, THD_mean_frequency,Load_Nominal_Freq] = loadsourcesettings(topology_type,ns,np); 
+Pout = 8000;
+[Vin, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
+    Lsm, THD_mean_frequency,Load_Nominal_Freq] = loadsourcesettings(topology_type,ns,np,Pout); 
 
 
 DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
@@ -52,7 +52,7 @@ toc
 end
 %% 
 
-
+sim('all_topologies.slx');
 
 
 
