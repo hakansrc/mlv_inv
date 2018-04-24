@@ -38,19 +38,19 @@ dataselector(topology_type,dclink_cur_rms,...
     dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
     phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes) ;
 %% loop settings
-startfreq = 2000;
-stopfreq = 100000;
-increment = 2000;
-for sw_frequency = startfreq:increment:stopfreq
-    DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
-    tic
-    loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
-        Lsm,Efm,dclink_cur_rms,...
-        dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
-        phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
-    toc
-    sw_frequency
-end
+% startfreq = 2000;
+% stopfreq = 100000;
+% increment = 2000;
+% for sw_frequency = startfreq:increment:stopfreq
+%     DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
+%     tic
+%     loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
+%         Lsm,Efm,dclink_cur_rms,...
+%         dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
+%         phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
+%     toc
+%     sw_frequency
+% end
 %% power variation
 startpower = 1000; %W
 endpower = 8000; %W
@@ -74,6 +74,8 @@ for a=2:1:5
         sw_frequency = 50000;
     end
     for Pout = startpower:increment:endpower
+        [np ns] = topology_decider(topology_type);
+        topology_type
         DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
         [Vin, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
             Lsm, THD_mean_frequency,Load_Nominal_Freq] = loadsourcesettings(topology_type,ns,np,Pout);
