@@ -1,4 +1,4 @@
-cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated')
+% cd('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated')
 % open_system('all_topologies.slx');
 clear
 %% initialization for all topologies
@@ -38,19 +38,38 @@ dataselector(topology_type,dclink_cur_rms,...
     dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
     phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes) ;
 %% loop settings
-% startfreq = 2000;
-% stopfreq = 100000;
-% increment = 2000;
-% for sw_frequency = startfreq:increment:stopfreq
-%     DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
-%     tic
-%     loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
-%         Lsm,Efm,dclink_cur_rms,...
-%         dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
-%         phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
-%     toc
-%     sw_frequency
-% end
+startfreq = 2000;
+stopfreq = 100000;
+increment = 2000;
+for a=1:1:5
+    switch a
+        case 1
+            topology_type = 'A';
+        case 2
+            topology_type = 'B';
+        case 3
+            topology_type = 'C';
+        case 4
+            topology_type = 'D';
+        case 5
+            topology_type = 'E';
+            for sw_frequency = startfreq:increment:stopfreq
+                DCLINK_Cap = capacitorselection(Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,Lsm,Efm);
+                [Vin, Poutm, Ls, Ef, Efm, Vdc, Vdcm, Is, Xs, Vtln, Vtll, ma, delta, Load_Angle, pf, intangle1, intangle2, intangle3, intangle4, ...
+                    Lsm, THD_mean_frequency,Load_Nominal_Freq] = loadsourcesettings(topology_type,ns,np,Pout);
+                dataselector(topology_type,dclink_cur_rms,...
+                    dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
+                    phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes) ;
+                tic
+                loopdecider(startfreq,stopfreq,increment,topology_type,Is,ma,pf,ns,np,sw_frequency,Vdc,Pout,...
+                    Lsm,Efm,dclink_cur_rms,...
+                    dclink_volt_mean,dclink_cur_waveform,dclink_vol_waveform,...
+                    phase_current_waveforms,phase_current_THD,pp_voltage_waveforms,pp_voltage_THD,switch_waveforms,all_modules,scopes);
+                toc
+                sw_frequency
+            end
+    end
+end
 %% power variation
 startpower = 6000; %W
 endpower = 8000; %W
