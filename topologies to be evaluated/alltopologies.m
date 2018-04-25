@@ -52,10 +52,10 @@ dataselector(topology_type,dclink_cur_rms,...
 %     sw_frequency
 % end
 %% power variation
-startpower = 3000; %W
+startpower = 6000; %W
 endpower = 8000; %W
 increment = 1000; %w
-for a=3:1:3
+for a=5:1:5
     switch a
         case 1
             topology_type = 'A';
