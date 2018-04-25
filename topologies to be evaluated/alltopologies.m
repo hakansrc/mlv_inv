@@ -28,7 +28,7 @@ dclink_cur_waveform = 1;
 dclink_vol_waveform = 1;
 phase_current_waveforms = 1;
 all_modules = 1; % 0 for one module phase currents and voltage, 1 for all modules phase currents and voltages
-scopes = 1; % 0 to comment out scopes, they occupy major space in the ram in the case of long simulations
+scopes = 0; % 0 to comment out scopes, they occupy major space in the ram in the case of long simulations
 phase_current_THD = 1;
 pp_voltage_waveforms = 1;
 pp_voltage_THD = 1;
@@ -52,10 +52,10 @@ dataselector(topology_type,dclink_cur_rms,...
 %     sw_frequency
 % end
 %% power variation
-startpower = 6000; %W
+startpower = 3000; %W
 endpower = 8000; %W
-increment = 2000; %w
-for a=3:1:5
+increment = 1000; %w
+for a=3:1:3
     switch a
         case 1
             topology_type = 'A';
