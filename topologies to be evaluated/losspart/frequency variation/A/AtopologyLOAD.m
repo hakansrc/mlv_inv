@@ -3,10 +3,10 @@ topology_type = 'A';
 % count = 1;
 % file_direction = strcat('C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\losspart\load variation\',topology_type);
 % cd(file_direction)
-for satir = 1:1:8
-    savename1 = strcat(topology_type,'_sw_currents_',num2str(satir),'000_W');
+for satir = 1:1:13
+    savename1 = strcat(topology_type,'_sw_currents_',num2str(satir*2),'000Hz');
     load(savename1);
-    savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir),'000_W');
+    savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir*2),'000Hz');
     load(savename2);
     
     %%
@@ -95,11 +95,11 @@ end
 
 %% efficiency versus power
 figure
-load=[1000 2000 3000 4000 5000 6000 7000 8000];
-satir=PLA+load;
-Eload_a=load./(satir)*100;
-plot(load/1000,Eload_a,'LineWidth',2)
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+fsw=2000:2000:26000;
+satir=PLA+8000;
+Eload_a=8000./(satir)*100;
+plot(fsw/1000,Eload_a,'LineWidth',2)
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
 title('Efficiency versus Pout for A','FontWeight','bold')
 set(gca,'fontsize',12,'FontWeight','bold')
@@ -107,13 +107,13 @@ grid on
 
 %% loss components versus power
 figure
-plot(load/1000,P_IGBT_sw,'LineWidth',2)
+plot(fsw/1000,P_IGBT_sw,'LineWidth',2)
 hold on
-plot(load/1000,P_IGBT_cond,'LineWidth',2)
+plot(fsw/1000,P_IGBT_cond,'LineWidth',2)
 hold on
-plot(load/1000,P_diode_sw,'LineWidth',2)
+plot(fsw/1000,P_diode_sw,'LineWidth',2)
 hold on
-plot(load/1000,P_diode_cond,'LineWidth',2)
+plot(fsw/1000,P_diode_cond,'LineWidth',2)
 hold off
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Losses per device (W)','FontSize',16,'FontWeight','bold')
@@ -121,10 +121,6 @@ title('Losses per device versus Pout for A','FontWeight','bold')
 legend('IGBT sw','IGBT cond','Diode sw','Diode cond','FontWeight','bold','Location','northwest')
 set(gca,'fontsize',12,'FontWeight','bold')
 grid on
-
-
-
-
 
 
 
