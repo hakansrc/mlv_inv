@@ -306,48 +306,54 @@ fsw=2000:2000:100000;
 satir=6*Ptop+6*Pbottom+6*P_diode;
 satir = satir+8000;
 Eload_b=8000./(satir)*100;
-plot(fsw/1000,Eload_b)
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+plot(fsw/1000,Eload_b,'LineWidth',2)
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
-title('Efficiency versus Pout for D','FontWeight','bold')
-
+title('Efficiency versus fsw for D','FontWeight','bold')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% loss components versus power
 figure
-plot(fsw,P_Cossbottom)
+plot(fsw/1000,P_Cossbottom,'LineWidth',2)
 hold on
-plot(fsw,P_GaNbottom_sw)
+plot(fsw/1000,P_GaNbottom_sw,'LineWidth',2)
 hold on
-plot(fsw,P_reverse_condbottom)
+plot(fsw/1000,P_reverse_condbottom,'LineWidth',2)
 hold on
-plot(fsw,P_GaNbottom)
+plot(fsw/1000,P_GaNbottom,'LineWidth',2)
 hold off
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus fsw for D lower switch','FontWeight','bold')
 legend('P Cossbottom','P GaNbottom sw','Preverse condbottom','Pcondbottom','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %%
 figure
-plot(fsw,P_Cosstop)
+plot(fsw/1000,P_Cosstop,'LineWidth',2)
 hold on
-plot(fsw,P_GaNtop_sw)
+plot(fsw/1000,P_GaNtop_sw,'LineWidth',2)
 hold on
-plot(fsw,P_reverse_condtop)
+plot(fsw/1000,P_reverse_condtop,'LineWidth',2)
 hold on
-plot(fsw,P_GaNtop)
+plot(fsw/1000,P_GaNtop,'LineWidth',2)
 hold off
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus fsw for D upper switch','FontWeight','bold')
 legend('P Cosstop','P GaNtop sw','Preverse condtop','Pcondtop','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% 
 figure
-plot(fsw,P_diode)
+plot(fsw/1000,P_diode,'LineWidth',2)
 
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus fsw for D','FontWeight','bold')
 legend('P Diode')
-
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 
 
 

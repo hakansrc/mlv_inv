@@ -8,10 +8,24 @@ for satir = 1:1:13
     load(savename1);
     savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir*2),'000Hz');
     load(savename2);
-    
+    %% fitering
+    minval = min(A_sw1_cur.signals.values);
+    maxval = max(A_sw1_cur.signals.values);
+    peak = (maxval-minval)/2;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(A_sw1_cur.signals.values));
+    for k = 1:numel(A_sw1_cur.signals.values)
+        if abs(A_sw1_cur.signals.values(k)) > 1e-3
+            filtered_signal(k) = A_sw1_cur.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = A_sw1_cur.signals.values(k);
+        end
+    end
+        fprintf('Dc value for %s  is %d\n',savename1,dcval)
+
     %%
     %     satir = 1;
-    Id(satir,:) = A_sw1_cur.signals.values;
+    Id(satir,:) = filtered_signal;
     L=length(Id(satir,:));
     Ts=1e-7;
     
@@ -101,7 +115,7 @@ Eload_a=8000./(satir)*100;
 plot(fsw/1000,Eload_a,'LineWidth',2)
 xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
-title('Efficiency versus Pout for A','FontWeight','bold')
+title('Efficiency versus fsw for A','FontWeight','bold')
 set(gca,'fontsize',12,'FontWeight','bold')
 grid on
 
@@ -115,9 +129,9 @@ plot(fsw/1000,P_diode_sw,'LineWidth',2)
 hold on
 plot(fsw/1000,P_diode_cond,'LineWidth',2)
 hold off
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses per device (W)','FontSize',16,'FontWeight','bold')
-title('Losses per device versus Pout for A','FontWeight','bold')
+title('Losses per device versus fsw for A','FontWeight','bold')
 legend('IGBT sw','IGBT cond','Diode sw','Diode cond','FontWeight','bold','Location','northwest')
 set(gca,'fontsize',12,'FontWeight','bold')
 grid on

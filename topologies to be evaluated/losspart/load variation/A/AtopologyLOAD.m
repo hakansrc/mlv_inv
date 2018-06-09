@@ -9,9 +9,27 @@ for satir = 1:1:8
     savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir),'000_W');
     load(savename2);
     
+     %% fitering
+    minval = min(A_sw1_cur.signals.values);
+    maxval = max(A_sw1_cur.signals.values);
+    peak = (maxval-minval)/2;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(A_sw1_cur.signals.values));
+    for k = 1:numel(A_sw1_cur.signals.values)
+        if abs(A_sw1_cur.signals.values(k)) > 1e-3
+            filtered_signal(k) = A_sw1_cur.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = A_sw1_cur.signals.values(k);
+        end
+    end
+%     figure 
+%     plot(filtered_signal)
+%     hold on
+%     plot(A_sw1_cur.signals.values)
+    fprintf('Dc value for %s W is %d\n',savename1,dcval)
     %%
     %     satir = 1;
-    Id(satir,:) = A_sw1_cur.signals.values;
+    Id(satir,:) = filtered_signal;
     L=length(Id(satir,:));
     Ts=1e-7;
     

@@ -254,44 +254,50 @@ figure
 load=[1000 2000 3000 4000 5000 6000 7000 8000];
 satir=6*Ptop+6*Pbottom+6*P_diode+load;
 Eload_b=load./(satir)*100;
-plot(load/1000,Eload_b)
+plot(load/1000,Eload_b,'LineWidth',2)
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
 title('Efficiency versus Pout for D','FontWeight','bold')
-
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% loss components versus power
 figure
-plot(load,P_Cossbottom)
+plot(load,P_Cossbottom,'LineWidth',2)
 hold on
-plot(load,P_GaNbottom_sw)
+plot(load,P_GaNbottom_sw,'LineWidth',2)
 hold on
-plot(load,P_reverse_condbottom)
+plot(load,P_reverse_condbottom,'LineWidth',2)
 hold on
-plot(load,P_GaNbottom)
+plot(load,P_GaNbottom,'LineWidth',2)
 hold off
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus Pout for D lower switch','FontWeight','bold')
 legend('P Cossbottom','P GaNbottom sw','Preverse condbottom','Pcondbottom','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %%
 figure
-plot(load,P_Cosstop)
+plot(load,P_Cosstop,'LineWidth',2)
 hold on
-plot(load,P_GaNtop_sw)
+plot(load,P_GaNtop_sw,'LineWidth',2)
 hold on
-plot(load,P_reverse_condtop)
+plot(load,P_reverse_condtop,'LineWidth',2)
 hold on
-plot(load,P_GaNtop)
+plot(load,P_GaNtop,'LineWidth',2)
 hold off
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus Pout for D upper switch','FontWeight','bold')
 legend('P Cosstop','P GaNtop sw','Preverse condtop','Pcondtop','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% 
 figure
-plot(load,P_diode)
-
+plot(load,P_diode,'LineWidth',2)
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
-legend('P Diode')
+title('Losses per diode versus Pout for B','FontWeight','bold')
+legend('Ploss per Diode')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on

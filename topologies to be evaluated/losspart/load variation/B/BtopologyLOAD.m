@@ -20,10 +20,24 @@ for satir = 1:1:8
     load(savename1);
     savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir),'000_W');
     load(savename2);
-
+ %% fitering
+    minval = min(B_sw1_cur.signals.values);
+    maxval = max(B_sw1_cur.signals.values);
+    peak = (maxval-minval)/2;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(B_sw1_cur.signals.values));
+    for k = 1:numel(B_sw1_cur.signals.values)
+        if abs(B_sw1_cur.signals.values(k)) > 1e-3
+            filtered_signal(k) = B_sw1_cur.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = B_sw1_cur.signals.values(k);
+        end
+    end
     
+        fprintf('Dc value for %s  is %d\n',savename1,dcval)    
+        %%
 fsw=50000;
-Id(satir,:)= B_sw1_cur.signals.values;
+Id(satir,:)= filtered_signal;
 % Vds = B_sw1_volt.signals.values;
 % Id = Id';
 for la = 1:numel(Id)
@@ -117,27 +131,33 @@ end
 
 
 %%
+figure
 load=[1000 2000 3000 4000 5000 6000 7000 8000];
 satir=PLB+load;
 Eload_b=load./(satir)*100;
-plot(load/1000,Eload_b)
+plot(load/1000,Eload_b,'LineWidth',2)
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
+grid on
+set(gca,'fontsize',12,'FontWeight','bold')
 title('Efficiency versus Pout for B','FontWeight','bold')
 
 %% loss components versus power
-plot(load,E(:,1))
+figure
+plot(load/1000,P_GaNB_sw,'LineWidth',2)
 hold on
-plot(load,E(:,2))
+plot(load/1000,P_GaNB_cond,'LineWidth',2)
 hold on
-plot(load,E(:,3))
+plot(load/1000,P_CossB,'LineWidth',2)
 hold on
-plot(load,E(:,4))
+plot(load/1000,P_reverse_condB,'LineWidth',2)
 hold off
 xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
 title('Losses per GaN versus Pout for B','FontWeight','bold')
-legend('Esw','Econd','Eoss','Erevcond','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
+legend('Psw','Pcond','Poss','Prevcond','FontWeight','bold','Location','northwest')
 
 
 

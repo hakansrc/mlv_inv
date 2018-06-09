@@ -1,6 +1,6 @@
 %% B TOPOLOGY
 clear all
-close all
+% close all
 % load('B_loadvariated.mat')
 topology_type = 'B';
 
@@ -14,14 +14,30 @@ topology_type = 'B';
     PLB=zeros();
     E=zeros();
     Eload_b=zeros();
-for satir = 1:1:25
+for satir = 1:1:50
     clearvars -except satir E Pper topology_type P_GaNB_cond P_reverse_condB P_GaNB_sw P_CossB Id PLB Eload_b
     savename1 = strcat(topology_type,'_sw_currents_',num2str(satir*2),'000Hz');
     load(savename1);
     savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir*2),'000Hz');
     load(savename2);
     
-Id(satir,:)= B_sw1_cur.signals.values;
+        %% fitering
+    minval = min(B_sw1_cur.signals.values);
+    maxval = max(B_sw1_cur.signals.values);
+    peak = (maxval-minval)/2;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(B_sw1_cur.signals.values));
+    for k = 1:numel(B_sw1_cur.signals.values)
+        if abs(B_sw1_cur.signals.values(k)) > 1e-3
+            filtered_signal(k) = B_sw1_cur.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = B_sw1_cur.signals.values(k);
+        end
+    end
+        fprintf('Dc value for %s  is %d\n',savename1,dcval)
+        %%
+    
+Id(satir,:)= filtered_signal;
 % Vds = B_sw1_volt.signals.values;
 % Id = Id';
 for la = 1:numel(Id)
@@ -116,29 +132,33 @@ end
 
 %%
 figure
-fsw=2000:2000:50000;
+fsw=2000:2000:100000;
 satir=PLB+8000;
 Eload_b=8000./(satir)*100;
-plot(fsw/1000,Eload_b)
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+plot(fsw/1000,Eload_b,'LineWidth',2)
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
-title('Efficiency versus Pout for B','FontWeight','bold')
-
+title('Efficiency versus fsw for C','FontWeight','bold')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% loss components versus power
 figure
-plot(fsw,P_GaNB_sw)
+% fsw=2000:2000:50000;
+plot(fsw/1000,P_GaNB_sw,'LineWidth',2)
 hold on
-plot(fsw,P_GaNB_cond)
+plot(fsw/1000,P_GaNB_cond,'LineWidth',2)
 hold on
-plot(fsw,P_CossB)
+plot(fsw/1000,P_CossB,'LineWidth',2)
 hold on
-plot(fsw,P_reverse_condB)
+plot(fsw/1000,P_reverse_condB,'LineWidth',2)
 hold off
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for B','FontWeight','bold')
+title('Losses per GaN versus fsw for B','FontWeight','bold')
 legend('Esw','Econd','Eoss','Erevcond','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
 
+grid on
 
 
 

@@ -23,8 +23,24 @@ for satir=1:1:50
     load(savename1);
     savename2 = strcat(topology_type,'_sw_voltages_',num2str(satir*2),'000Hz');
     load(savename2);
+     %% fitering
+    minval = min(C_sw1_cur.signals.values);
+    maxval = max(C_sw1_cur.signals.values);
+    peak = (maxval-minval)/2;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(C_sw1_cur.signals.values));
+    for k = 1:numel(C_sw1_cur.signals.values)
+        if abs(C_sw1_cur.signals.values(k)) > 1e-3
+            filtered_signal(k) = C_sw1_cur.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = C_sw1_cur.signals.values(k);
+        end
+    end
+        fprintf('Dc value for %s  is %d\n',savename1,dcval)
+        %%
     
-    Id(satir,:)= C_sw1_cur.signals.values;
+    
+    Id(satir,:)= filtered_signal;
     for la = 1:numel(Id)
         if (Id(la) < 1e-4)&&(Id(la) > -1e-4)
             Id(la) = 0;
@@ -113,25 +129,28 @@ figure
 fsw=2000:2000:100000;
 satir=PLC+8000;
 Eload_c=8000./(satir)*100;
-plot(fsw/1000,Eload_c)
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+plot(fsw/1000,Eload_c,'LineWidth',2)
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
 title('Efficiency versus Pout for C','FontWeight','bold')
-
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %% loss components versus power
 figure
-plot(fsw/1000,P_GaN_sw)
+plot(fsw/1000,P_GaN_sw,'LineWidth',2)
 hold on
-plot(fsw/1000,P_GaN_cond)
+plot(fsw/1000,P_GaN_cond,'LineWidth',2)
 hold on
-plot(fsw/1000,P_Coss)
+plot(fsw/1000,P_Coss,'LineWidth',2)
 hold on
-plot(fsw/1000,P_reverse_cond)
+plot(fsw/1000,P_reverse_cond,'LineWidth',2)
 hold off
-xlabel('Pout (kW)','FontSize',16,'FontWeight','bold')
+xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
-title('Losses per GaN versus Pout for C','FontWeight','bold')
-legend('Esw','Econd','Eoss','Erevcond','FontWeight','bold','Location','northwest')
+title('Losses per GaN versus fsw for C','FontWeight','bold')
+legend('Psw','Pcond','Poss','Prevcond','FontWeight','bold','Location','northwest')
+set(gca,'fontsize',12,'FontWeight','bold')
+grid on
 %%
 % for satir=1:9:30
 %     savename1 = strcat(topology_type,'_sw_currents_',num2str(satir*2),'000Hz');

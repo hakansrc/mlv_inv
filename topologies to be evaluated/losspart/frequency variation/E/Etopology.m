@@ -3,8 +3,8 @@
 clear all;
 %close all;
 
-cd('C:\Users\syf.DESKTOP-JNMNU9A\Documents\GitHub\GaN-FET\Paper_GaN_Loss\t3level\E_topology');
- load('topology_E_detaileddatas_50.mat')
+% cd('C:\Users\syf.DESKTOP-JNMNU9A\Documents\GitHub\GaN-FET\Paper_GaN_Loss\t3level\E_topology');
+%  load('topology_E_detaileddatas_50.mat')
 
 
 Id=zeros();
