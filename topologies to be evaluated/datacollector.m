@@ -1,3 +1,4 @@
+topology_type = 'E';
 %% dcl current rms
 count = 1;
 for sw_frequency = 2000:2000:100000
@@ -32,13 +33,19 @@ for sw_frequency = 2000:2000:100000
     count = count+1;
 end
 %% current THDs
+clear
+topology_type = 'E';
 count = 1;
-for sw_frequency = 2000:2000:100000
+endfreq = 100000;
+for sw_frequency = 2000:2000:endfreq
     savename = strcat(topology_type,'_Ia1_THD_',num2str(sw_frequency),'Hz');
     dataload = load(savename);
     ia1_thd(count) = dataload.(strcat(topology_type,'_Ia1_THD'));
     count = count+1;
 end
+sw_frequency = 2000:2000:endfreq
+hold on
+plot(sw_frequency,100*ia1_thd)
 %% voltage THDs
 count = 1;
 for sw_frequency = 2000:2000:100000
