@@ -132,7 +132,7 @@ Eload_c=8000./(satir)*100;
 plot(fsw/1000,Eload_c,'LineWidth',2)
 xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
-title('Efficiency versus Pout for C','FontWeight','bold')
+title('Efficiency versus fsw for C','FontWeight','bold')
 set(gca,'fontsize',12,'FontWeight','bold')
 grid on
 %% loss components versus power
