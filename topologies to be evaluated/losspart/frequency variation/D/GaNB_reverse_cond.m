@@ -1,19 +1,17 @@
 function Vds=GaNB_reverse_cond(Id)
 Id=abs(Id);
-if (0<=Id) && (Id<20.06)
-    Vds=1.25/20.06*Id;
+if (0<=Id) && (Id<11.33)
+    Vds=Id/16.325;
 
-elseif (20.06<=Id) && (Id<30.09)
-    Vds=(1.95-1.25)/(30.09-20.06)*Id;
+elseif (11.33<=Id) && (Id<25.36)
+    Vds=(Id-0.792)/15.18;
 
-elseif (30.09<=Id) && (Id<39.94)
-     Vds=(2.76-1.95)/(39.94-30.09)*Id;
+elseif (25.36<=Id) && (Id<35.06)
+     Vds=(Id-3.317)/13.623;
 
-elseif (39.94<=Id) && (Id<49.62)
-     Vds=(3.825-2.76)/(49.62-39.94)*Id;
+elseif (35.06<=Id) && (Id<42.36)
+     Vds=(Id-8.483)/11.406;
 
-elseif (49.62<=Id) && (Id<55.6)
-     Vds=(5-3.825)/(55.6-49.62)*Id;
 end
 
 end

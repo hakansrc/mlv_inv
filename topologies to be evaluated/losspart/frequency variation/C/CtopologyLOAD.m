@@ -107,7 +107,7 @@ for satir=1:1:50
         end
     end
     
-    Eoss=swon*11e-6; %J
+    Eoss=swon*7e-6*(270/400); %J
     
     P_GaN_cond(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_cond(satir) = (Erevcond)*50;

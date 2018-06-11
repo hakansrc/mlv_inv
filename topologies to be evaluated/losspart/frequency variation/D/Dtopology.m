@@ -20,10 +20,32 @@ Ptotal=zeros();
 
 % Id=diode1_current_all;
 for (satir=1:50)
+        clearvars -except satir Id Edcond dcond Ecap P_diode topology_type swoff
+
     savename1 = strcat(topology_type,'_diode_currents_',num2str(satir*2),'000Hz');
     load(savename1);
     savename2 = strcat(topology_type,'_diode_voltages_',num2str(satir*2),'000Hz');
     load(savename2);
+    
+            %% fitering
+%     minval = min(D_diode_currents.signals.values);
+    maxval = max(D_diode_currents.signals.values);
+    peak = 24.5242;
+    dcval = maxval-peak;
+    filtered_signal = zeros(1,numel(D_diode_currents.signals.values));
+    for k = 1:numel(D_diode_currents.signals.values)
+        if abs(D_diode_currents.signals.values(k)) > 1e-3
+            filtered_signal(k) = D_diode_currents.signals.values(k) - dcval;
+        else
+            filtered_signal(k) = D_diode_currents.signals.values(k);
+        end
+    end
+%     figure 
+%     plot(filtered_signal)
+%     hold on
+%     plot(A_sw1_cur.signals.values)
+    fprintf('Dc value for %s W is %d\n',savename1,dcval)
+    %%
     Id(satir,:) = D_diode_currents.signals.values;
     L=length(Id(satir,:));
     % fsw=1050+(satir-1)*1000;
@@ -38,7 +60,7 @@ for (satir=1:50)
     Ecap=0;
     swoff=0;
     dcond=0;
-    Ron=(2.49-0.83)/(86.5);
+%     Ron=(2.49-0.83)/(86.5);
 
     for n=1:L
         if (Id(satir,n)>0  && n>1 && n<L) %meaning that IGBT is on operation
@@ -47,8 +69,9 @@ for (satir=1:50)
                 swoff=swoff+1;
             end
 
-            Edcond= Edcond + abs(Id(satir,n))^2*Ron*Ts+abs(Id(satir,n))*0.83*Ts;
-            dcond=dcond+1;
+            Vds = diode_cond(Id(satir,n));
+            Edcond= Edcond + Vds*Id(satir,n)*Ts;%abs(Id(satir,n))*0.83*Ts;%+abs(Id(satir,n))^2*Ron*Ts;
+              dcond=dcond+1;
         end
     end
 
@@ -87,6 +110,9 @@ revcond=0;
 
 topology_type = 'D';
 for (satir=1:50)
+        clearvars -except satir Id Edcond dcond Ecap P_diode topology_type swoff Econd swon n L Pbottom P_reverse_condbottom ...
+       P_GaNtop P_GaNbottom P_GaNbottom_sw P_Cossbottom Pbottom Erevcond Esw revcond Eon Ts cond Ecoss Eoss Ts
+ 
     savename1 = strcat(topology_type,'_lowersw_currents_',num2str(satir*2),'000Hz');
     load(savename1);
     savename2 = strcat(topology_type,'_lowersw_voltages_',num2str(satir*2),'000Hz');
@@ -159,7 +185,7 @@ Erevcond=0;
         end
     end
     
-    Eoss=swon*14.1e-6; %J
+    Eoss=270/400*swon*14.1e-6; %J
     
     P_GaNbottom(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_condbottom(satir) = (Erevcond)*50;
@@ -213,6 +239,10 @@ cond=0;
 revcond=0;
 %%
 for (satir=1:50)
+    
+    clearvars -except satir Id Edcond dcond Ecap P_diode topology_type swoff Econd swon n L Pbottom P_reverse_condbottom ...
+       P_GaNtop P_GaNbottom P_GaNbottom_sw P_Cossbottom Pbottom Erevcond Esw revcond Eon Ts cond Ptop P_GaNtop P_reverse_condtop P_GaNtop_sw P_Cosstop Ecoss cond  Eoss
+
     savename1 = strcat(topology_type,'_uppersw_currents_',num2str(satir*2),'000Hz');
     load(savename1);
     savename2 = strcat(topology_type,'_uppersw_voltages_',num2str(satir*2),'000Hz');
@@ -285,7 +315,7 @@ for n=1:L
     end
 end
 
-Eoss=swon*14.1e-6; %J
+Eoss=270/400*swon*14.1e-6; %J
 
 P_GaNtop(satir) = (Econd)*50;       %Total loss per IGBT
 P_reverse_condtop(satir) = (Erevcond)*50;

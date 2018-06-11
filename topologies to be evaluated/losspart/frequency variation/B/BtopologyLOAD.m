@@ -112,7 +112,7 @@ end
         end
     end
     
-    Eoss=swon*14.1e-6; %J
+    Eoss=270/400*swon*14.1e-6; %J
     
     P_GaNB_cond(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_condB(satir) = (Erevcond)*50;
@@ -138,7 +138,7 @@ Eload_b=8000./(satir)*100;
 plot(fsw/1000,Eload_b,'LineWidth',2)
 xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Efficiency (%)','FontSize',16,'FontWeight','bold')
-title('Efficiency versus fsw for C','FontWeight','bold')
+title('Efficiency versus fsw for B','FontWeight','bold')
 set(gca,'fontsize',12,'FontWeight','bold')
 grid on
 %% loss components versus power
@@ -155,7 +155,7 @@ hold off
 xlabel('fsw (kHz)','FontSize',16,'FontWeight','bold')
 ylabel('Losses (W)','FontSize',16,'FontWeight','bold')
 title('Losses per GaN versus fsw for B','FontWeight','bold')
-legend('Esw','Econd','Eoss','Erevcond','FontWeight','bold','Location','northwest')
+legend('Psw','Pcond','Poss','Prevcond','FontWeight','bold','Location','northwest')
 set(gca,'fontsize',12,'FontWeight','bold')
 
 grid on

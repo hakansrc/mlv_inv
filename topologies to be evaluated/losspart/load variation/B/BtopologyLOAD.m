@@ -1,6 +1,6 @@
 %% B TOPOLOGY
 clear all
-close all
+% close all
 % load('B_loadvariated.mat')
 topology_type = 'B';
 
@@ -51,7 +51,7 @@ end
     
     L=length(Id(satir,:));
     Ts=1e-7;
-    load=800*satir;
+%     load=800*satir;
     
     
     Esw=0;
@@ -112,7 +112,7 @@ end
         end
     end
     
-    Eoss=swon*14.1e-6; %J
+    Eoss=270/400*swon*14.1e-6; %J
     
     P_GaNB_cond(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_condB(satir) = (Erevcond)*50;
@@ -124,7 +124,7 @@ end
     Pper(satir)=P_GaNB_cond(satir)+P_reverse_condB(satir)+P_GaNB_sw(satir)+P_CossB(satir);
     Pmodule(satir)=Pper(satir)*6;
     PLB(satir)=Pmodule(satir)*2;
-    Eload_b(satir)=load/(PLB(satir)+load)*100;
+%     Eload_b(satir)=load/(PLB(satir)+load)*100;
     
     E(satir,1:4)=[Esw  Econd Eoss Erevcond];
 end

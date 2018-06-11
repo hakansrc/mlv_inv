@@ -31,9 +31,13 @@ for (satir=1:8)
             Id(la) = 0;
         end
     end
+ Edcond=0;
+Ecap=0;
+swoff=0;
+dcond=0;   
+        
     
-    
-    Ron=(2.49-0.83)/(86.5);
+%     Ron=(2.49-0.83)/(86.5);
     
     for n=1:L
         if (Id(satir,n)>0  && n>1 && n<L) %meaning that IGBT is on operation
@@ -42,8 +46,9 @@ for (satir=1:8)
                 swoff=swoff+1;
             end
             
-            Edcond= Edcond + abs(Id(satir,n))^2*Ron*Ts+abs(Id(satir,n))*0.83*Ts;
-            dcond=dcond+1;
+            Vds = diode_cond(Id(satir,n));
+            Edcond= Edcond + Vds*Id(satir,n)*Ts;%abs(Id(satir,n))*0.83*Ts;%+abs(Id(satir,n))^2*Ron*Ts;
+             dcond=dcond+1;
         end
     end
     

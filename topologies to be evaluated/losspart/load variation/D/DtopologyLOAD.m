@@ -12,10 +12,7 @@ P_diode=zeros();
 
 Pper=zeros();
 PLD=zeros();
-Edcond=0;
-Ecap=0;
-swoff=0;
-dcond=0;
+
 % Id=diode1_current_all;
 for (satir=1:8)
     clearvars -except satir Id Edcond dcond Ecap P_diode topology_type swoff
@@ -31,23 +28,26 @@ for (satir=1:8)
             Id(la) = 0;
         end
     end
+ Edcond=0;
+Ecap=0;
+swoff=0;
+dcond=0;   
     
-    
-    Ron=(2.49-0.83)/(86.5);
+%     Ron=(2.49-0.83)/(86.5);
     
     for n=1:L
         if (Id(satir,n)>0  && n>1 && n<L) %meaning that IGBT is on operation
             
-            if ((Id(satir,n+1)<0) ) %meaning that there is an off switching, a decline in the current
+            if ((Id(satir,n+1)<=0) ) %meaning that there is an off switching, a decline in the current
                 swoff=swoff+1;
             end
-            
-            Edcond= Edcond + abs(Id(satir,n))^2*Ron*Ts+abs(Id(satir,n))*0.83*Ts;
+            Vds = diode_cond(Id(satir,n));
+            Edcond= Edcond + Vds*Id(satir,n)*Ts;%abs(Id(satir,n))*0.83*Ts;%+abs(Id(satir,n))^2*Ron*Ts;
             dcond=dcond+1;
         end
     end
     
-    Ecap=swoff*(9.3-3)/(282-146)*270*1e-6;
+    Ecap=swoff*(9.3-3)/(282-136)*270*1e-6;
     
     P_diode(satir) = (Ecap + Edcond)*50;
     
@@ -87,8 +87,20 @@ for (satir=1:8)
     
     L=length(Id(satir,:));
     Ts=1e-7;
+    Esw=0;
+Eoff=0;
+Eon=0;
+Eoss=0;
+Econd=0;
+Erevcond=0;
+
+swon=0;
+swoff=0;
+swrev=0;
+cond=0;
+revcond=0;
     for la = 1:numel(Id)
-        if (Id(la) < 1e-3)&&(Id(la) > -1e-3)
+        if (Id(la) < 1e-4)&&(Id(la) > -1e-4)
             Id(la) = 0;
         end
     end
@@ -135,7 +147,7 @@ for (satir=1:8)
         end
     end
     
-    Eoss=swon*14.1e-6; %J
+    Eoss=270/400*swon*14.1e-6; %J
     
     P_GaNbottom(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_condbottom(satir) = (Erevcond)*50;
@@ -182,6 +194,18 @@ for (satir=1:8)
     
     L=length(Id(satir,:));
     Ts=1e-7;
+    Esw=0;
+Eoff=0;
+Eon=0;
+Eoss=0;
+Econd=0;
+Erevcond=0;
+
+swon=0;
+swoff=0;
+swrev=0;
+cond=0;
+revcond=0;
     for la = 1:numel(Id)
         if (Id(la) < 1e-4)&&(Id(la) > -1e-4)
             Id(la) = 0;
@@ -231,7 +255,7 @@ for (satir=1:8)
         end
     end
     
-    Eoss=swon*14.1e-6; %J
+    Eoss=270/400*swon*14.1e-6; %J
     
     P_GaNtop(satir) = (Econd)*50;       %Total loss per IGBT
     P_reverse_condtop(satir) = (Erevcond)*50;
