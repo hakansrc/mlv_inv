@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetDataWorkspace>
+  <version>2.26.0.20</version>
+  <WSversion>10</WSversion>
+  <File>
+    <Name>C:\Users\hakan\Documents\GitHub\mlv_inv\topologies to be evaluated\losspart\graphs\E C\diode_cond.JPG</Name>
+    <Width>776</Width>
+    <Height>852</Height>
+  </File>
+  <Line>
+    <Caption>Line #1</Caption>
+    <LineColor>2,1,2</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>220,70,220</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">850,6511,1579,6511,1687,6457,1849,6304,2461,5431,2803,4909,3181,4324,3730,3496,4108,2929</Points>
+  </Line>
+  <CurrentLine>0</CurrentLine>
+  <Xmin MF="9">850,6511,0.000000e+000</Xmin>
+  <Xmax MF="9">6718,6511,5.000000e+000</Xmax>
+  <Ymin MF="9">850,6511,0.000000e+000</Ymin>
+  <Ymax MF="9">850,148,4.500000e+001</Ymax>
+  <XScale>linear</XScale>
+  <YScale>linear</YScale>
+  <Position>1015,258</Position>
+  <Zoom>
+    <Scale>100.0</Scale>
+  </Zoom>
+  <Digitize>
+    <IgnorePixels>1</IgnorePixels>
+    <LineIDMethod>2</LineIDMethod>
+  </Digitize>
+  <AutoTrace>
+    <TraceDistance>8</TraceDistance>
+    <SmoothLines>1</SmoothLines>
+  </AutoTrace>
+  <DigitizeArea>
+    <LineOrArea>0</LineOrArea>
+    <RotateAngle>0.000000</RotateAngle>
+    <dx>8.000000</dx>
+  </DigitizeArea>
+  <GridSettings>
+    <ShowGrid>0</ShowGrid>
+    <AreaType>0</AreaType>
+    <dx>15.000000</dx>
+    <dy>15.000000</dy>
+  </GridSettings>
+</GetDataWorkspace>
