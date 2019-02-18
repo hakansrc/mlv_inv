@@ -1,0 +1,55 @@
+SimValueCacheVersionID=1
+$begin 'SimValueInfos'
+	NextUniqueID=3
+	MoveBackwards=false
+	$begin 'SimValue'
+		ID=0
+		$begin 'SimValueParams'
+			QuantityName='Flux_Lines'
+			ValueState(90, 15, 1, 1)
+			MatrixSize(0, 0)
+		$end 'SimValueParams'
+	$end 'SimValue'
+	$begin 'SimValue'
+		ID=1
+		$begin 'SimValueParams'
+			QuantityName='Mag_B'
+			ValueState(103, 16, 1, 1)
+			MatrixSize(0, 0)
+		$end 'SimValueParams'
+	$end 'SimValue'
+	$begin 'SimValue'
+		ID=2
+		$begin 'SimValueParams'
+			QuantityName='Mag_H'
+			ValueState(329, 55, 1, 1)
+			MatrixSize(0, 0)
+		$end 'SimValueParams'
+	$end 'SimValue'
+$end 'SimValueInfos'
+$begin 'SimValueCache'
+	$begin 'DesignMap'
+		DesignID=10
+		$begin 'SolutionMap'
+			$begin 'ContextMap'
+				SolutionID=1449
+			$end 'ContextMap'
+			$begin 'ContextMap'
+				SolutionID=1450
+				$begin 'VersionMap'
+					$begin 'ReportTypeSolnDef'
+						ReportType=9
+						SimValueContext(0, 0, 2, 0, false, false, 232, 1, 0, 1, 1, '', 0, 0, 'PC', false, '1001')
+					$end 'ReportTypeSolnDef'
+					$begin 'MajorVVMap'
+						VersionID=2230
+						$begin 'MinorVVMap'
+							MajorVariation=''
+							MinorCacheFile='min4BD14416151211385739.tmp'
+						$end 'MinorVVMap'
+					$end 'MajorVVMap'
+				$end 'VersionMap'
+			$end 'ContextMap'
+		$end 'SolutionMap'
+	$end 'DesignMap'
+$end 'SimValueCache'

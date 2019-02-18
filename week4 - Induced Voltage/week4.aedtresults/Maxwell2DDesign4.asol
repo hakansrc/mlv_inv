@@ -1,0 +1,135 @@
+$begin '$base_index$'
+  $begin 'properties'
+    all_levels=000000000000
+    time(year=000000002017, month=000000000012, day=000000000001, hour=000000000010, min=000000000037, sec=000000000037)
+    version=000000000000
+  $end 'properties'
+  $begin '$base_index$'
+    $index$(pos=000000003449, lin=000000000113, lvl=000000000000)
+  $end '$base_index$'
+$end '$base_index$'
+$begin 'SolutionBlock433'
+	SolutionName='LastAdaptive'
+	SolutionID=1450
+	V=2230
+	$begin 'States'
+		F(VID=44, Ver=2230)
+	$end 'States'
+	$begin 'Definition'
+		SamplingInterpolation=false
+		Frequencies()
+		SolutionType=1
+		CenterFreq=0
+	$end 'Definition'
+	$begin 'Fields'
+		IDDblMap(1545, -1)
+		$begin 'DataMap'
+			VID=44
+			Ver=2230
+			Field(DblID=1545, Dir='DV44_SOL1450_V2230.Field1545/')
+		$end 'DataMap'
+	$end 'Fields'
+$end 'SolutionBlock433'
+$begin 'BlockMapName'
+	FileHeader='SolutionBlock4'
+	'SolutionKey(SimSetup=1448, Instance=\'\', Solution=-3, VersionID=2198)'='SolutionBlock431'
+	'SolutionKey(SimSetup=1448, Instance=\'SetupDefinition\', Solution=-1, VersionID=2198)'='SolutionBlock430'
+	'SolutionKey(SimSetup=1448, Instance=\'SolutionDefinition\', Solution=1449, VersionID=2230)'='SolutionBlock432'
+	'SolutionKey(SimSetup=1448, Instance=\'SolutionDefinition\', Solution=1450, VersionID=2230)'='SolutionBlock433'
+$end 'BlockMapName'
+$begin 'SolutionBlock432'
+	SolutionName='AdaptivePass'
+	SolutionID=1449
+	V=2230
+	$begin 'States'
+		F(VID=44, Ver=2230)
+	$end 'States'
+	$begin 'Definition'
+		SamplingInterpolation=false
+		Frequencies()
+		SolutionType=1
+		CenterFreq=0
+	$end 'Definition'
+	$begin 'NFSP'
+		$begin 'SubData'
+			ID=10
+			NFSP(VID=44, Ver=2230, File='DV44_SOL1449_NFSP10_V2230.sd')
+		$end 'SubData'
+	$end 'NFSP'
+$end 'SolutionBlock432'
+$begin 'SolutionBlock430'
+	SimSetupID=1448
+	SimSetupName='Setup1'
+	VersionID=2198
+	SolveSetupID=1
+	$begin 'CurrMeshes'
+		IDDblMap(1543, 1, 1546, 2, 1547, 3, 1616, 4, 1617, 5, 1618, 6, 1619, 7, 1620, 8, 1621, 9, 1622, 10, 1623, 11)
+		$begin 'DataMap'
+			VID=44
+			Ver=2198
+			M(DblID=1546, Dir='DV44_S1448_V2198.cmesh1546/')
+			M(DblID=1547, Dir='DV44_S1448_V2198.cmesh1547/')
+		$end 'DataMap'
+	$end 'CurrMeshes'
+	$begin 'LastPassNumbers'
+		LP(VID=44, Ver=2198, P=2)
+	$end 'LastPassNumbers'
+	$begin 'Profiles'
+		P(VID=44, Ver=2198, File='DV44_S1448_V2198.profile')
+	$end 'Profiles'
+	$begin 'MI'
+		$begin 'SubData'
+			ID=0
+			MI(VID=44, Ver=2198, Dir='DV44_S1448_MI0_V2198.sd/')
+		$end 'SubData'
+	$end 'MI'
+	$begin 'MeshGeomInfo'
+		MGI(VID=44, Ver=2198, Dir='DV44_S1448_V2198_MGI/')
+	$end 'MeshGeomInfo'
+$end 'SolutionBlock430'
+$begin 'SolutionBlock431'
+	ConvSetupName='eConv'
+	MaxPasses='10'
+	MinPasses='2'
+	ConvTarget='(1, 1)'
+	ConvTargetConsecPasses='N/A'
+	ConvCurrentConsecPasses='N/A'
+	c(de_ee='(0.032775, N/A)', te=92.13650764897065, p=1, tri=1578, ee=0.03277499724049036)
+	c(de_ee='(0.038443, 0.081032)', te=92.06184742010159, p=2, tri=2156, ee=0.0384430699624028, de=0.08103218884040042)
+$end 'SolutionBlock431'
+$begin 'SolutionBlock4'
+	ProductName=''
+	CircuitName='Maxwell2DDesign4'
+	VersionID=2198
+	PostProcess=false
+	LossLess=true
+	NextUniqueID=2243
+	MoveBackwards=false
+	$begin 'VariationIDs'
+		Map(V='', ID=44)
+	$end 'VariationIDs'
+	$begin 'LinkedDataList'
+	$end 'LinkedDataList'
+	$begin 'InitialMeshes'
+		M(VID=44, Ver=2198, Dir='DV44_V2198.imesh/')
+	$end 'InitialMeshes'
+	$begin 'MI'
+		$begin 'SubData'
+			ID=0
+			MI(VID=44, Ver=2198, Dir='DV44_MI0_V2198.sd/')
+		$end 'SubData'
+	$end 'MI'
+$end 'SolutionBlock4'
+$begin '$index$'
+	$begin '$index$'
+		SolutionBlock4(pos=2943, lin=90, lvl=0)
+		BlockMapName(pos=815, lin=23, lvl=0)
+		SolutionBlock431(pos=2551, lin=80, lvl=0)
+		SolutionBlock432(pos=1313, lin=30, lvl=0)
+		SolutionBlock433(pos=370, lin=1, lvl=0)
+		SolutionBlock430(pos=1725, lin=50, lvl=0)
+		$base_index$(pos=0, lin=1, lvl=0)
+		$index$(pos=3449, lin=113, lvl=0)
+	$end '$index$'
+$end '$index$'
+                                                                                                                          

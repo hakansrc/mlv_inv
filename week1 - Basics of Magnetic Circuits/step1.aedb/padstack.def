@@ -1,0 +1,2 @@
+DEFINE padstack padstack
+ASSIGN padstack libMode shared
