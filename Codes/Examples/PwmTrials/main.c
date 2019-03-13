@@ -9,18 +9,20 @@ __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 __interrupt void epwm1_isr(void);
+int somecounter=0;
 
 int main(void)
 {
-
     InitSysCtrl();// first link F2837xD_SysCtrl.c
-
+    DINT;
     InitPieCtrl();// first link F2837xD_PieCtrl.c
     IER = 0x0000;
     IFR = 0x0000;
     //PieVectTable.TIMER0_INT = &cpu_timer0_isr;
     InitPieVectTable();
     Gpio_Select1();
+
+
     EALLOW;  // This is needed to write to EALLOW protected registers
     PieVectTable.TIMER0_INT = &cpu_timer0_isr;
     PieVectTable.TIMER1_INT = &cpu_timer1_isr;
@@ -36,6 +38,19 @@ int main(void)
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =0;
 
     EDIS;
+    SetPwmModules();
+    InitPwmModules();
+    EALLOW;
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =1;
+
+    EDIS;
+    // Enable CPU INT3 which is connected to EPWM1-3 INT:
+        IER |= M_INT3;
+
+    // Enable EPWM INTn in the PIE: Group 3 interrupt 1-3
+        PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+        PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+        PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
     //CpuTimer0Regs.PRD.all = 0xFFFFFFFF;
     CpuTimer0Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     CpuTimer1Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
@@ -147,7 +162,6 @@ __interrupt void cpu_timer2_isr(void)
 void SetPwmModules(void)
 {
     CpuSysRegs.PCLKCR2.bit.EPWM1=1; //Enable EWM1 clock
-
     EALLOW;
     GpioCtrlRegs.GPAPUD.bit.GPIO0 = 1; //disable pull up
     GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1; //disable pull up
@@ -160,7 +174,7 @@ void SetPwmModules(void)
 __interrupt void epwm1_isr(void)
 {
     GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
-
+    somecounter++;
     // Clear INT flag for this timer
     EPwm1Regs.ETCLR.bit.INT = 1;
     // Acknowledge this interrupt to receive more interrupts from group 3
@@ -181,7 +195,20 @@ void InitPwmModules(void)
     EPwm1Regs.CMPCTL.bit.SHDWBMODE = 0;
 
     EPwm1Regs.CMPA.half.CMPA = 20000;    // Set compare A value
-    EPwm1Regs.CMPB.half.CMPB = 20000;              // Set Compare B value
+    EPwm1Regs.CMPB.half.CMPB = 20000;    // Set Compare B value
+
+    EPwm1Regs.AQCTLA.bit.ZRO = 0; // do nothing when ctr==0
+    EPwm1Regs.AQCTLA.bit.CAU = 2; //set high when CAU
+    EPwm1Regs.AQCTLA.bit.CAD = 1; // set low when CAD
+
+    EPwm1Regs.AQCTLB.bit.ZRO = 0; // do nothing when ctr==0
+    EPwm1Regs.AQCTLB.bit.CBU = 2; //set high when CBU
+    EPwm1Regs.AQCTLB.bit.CBD = 1; // set low when CBD
+
+    EPwm1Regs.ETSEL.bit.INTSEL = 0b100;     // Select INT CMPAU event
+    EPwm1Regs.ETSEL.bit.INTEN = 1;   // Enable INT
+    EPwm1Regs.ETPS.bit.INTPRD = 3; // on everythird event
+
 
 
 }
