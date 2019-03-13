@@ -1,4 +1,6 @@
 #include <F2837xD_Device.h>
+#include <math.h>
+
 void Gpio_Select1();
 void InitSystem();
 void InitEpwm1();
@@ -8,9 +10,9 @@ __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 __interrupt void epwm1_isr(void);
-int countmeup = 0;
 int main(void)
 {
+
     InitSysCtrl();// first link F2837xD_SysCtrl.c
 
     CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;/*enable clock for epwm1*/
@@ -26,7 +28,6 @@ int main(void)
     GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;     // Configure GPIO1 as EPWM1B
     EDIS;
     DINT; //disable the interrupts
-
 
     InitPieCtrl();// first link F2837xD_PieCtrl.c
     IER = 0x0000;
@@ -152,7 +153,7 @@ __interrupt void cpu_timer1_isr(void)
 {
    CpuTimer1.InterruptCount++;
    // The CPU acknowledges the interrupt.
-   GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+   // GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
 
 }
 
@@ -167,9 +168,13 @@ __interrupt void epwm1_isr(void)
 {
     // Update the CMPA and CMPB values
     //update_compare(&epwm1_info);
-    countmeup++;
     // Clear INT flag for this timer
     EPwm1Regs.ETCLR.bit.INT = 1;
+    GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+    if(EPwm1Regs.CMPA.half.CMPA>=45000)
+        EPwm1Regs.CMPA.half.CMPA=0;    // Set compare A value
+    else
+        EPwm1Regs.CMPA.half.CMPA+=1000;
 
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
