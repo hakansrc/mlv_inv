@@ -1,27 +1,38 @@
 #include <F2837xD_Device.h>
 void Gpio_Select1();
 void InitSystem();
-void SetPwmModules();
-void InitPwmModules(void);
+void InitEpwm1();
 
 //interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 __interrupt void epwm1_isr(void);
-int somecounter=0;
-
+int countmeup = 0;
 int main(void)
 {
     InitSysCtrl();// first link F2837xD_SysCtrl.c
-    DINT;
+
+    CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;/*enable clock for epwm1*/
+    EALLOW;
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =0;
+
+    EDIS;
+    Gpio_Select1();
+    EALLOW;
+    GpioCtrlRegs.GPAPUD.bit.GPIO0 = 1;    // Disable pull-up on GPIO0 (EPWM1A)
+    GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1;    // Disable pull-up on GPIO1 (EPWM1B)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 1;   // Configure GPIO0 as EPWM1A
+    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;     // Configure GPIO1 as EPWM1B
+    EDIS;
+    DINT; //disable the interrupts
+
+
     InitPieCtrl();// first link F2837xD_PieCtrl.c
     IER = 0x0000;
     IFR = 0x0000;
     //PieVectTable.TIMER0_INT = &cpu_timer0_isr;
     InitPieVectTable();
-    Gpio_Select1();
-
 
     EALLOW;  // This is needed to write to EALLOW protected registers
     PieVectTable.TIMER0_INT = &cpu_timer0_isr;
@@ -29,39 +40,32 @@ int main(void)
     PieVectTable.TIMER2_INT = &cpu_timer2_isr;
     PieVectTable.EPWM1_INT = &epwm1_isr;
     EDIS;
+
+
     InitCpuTimers();   // For this example, only initialize the Cpu Timers
     ConfigCpuTimer(&CpuTimer0, 200, 1000); //2 miliseconds
     ConfigCpuTimer(&CpuTimer1, 200, 1000000); //2 seconds
     ConfigCpuTimer(&CpuTimer2, 200, 1000000); //2 seconds
+    InitEpwm1();
 
-    EALLOW;
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =0;
 
-    EDIS;
-    SetPwmModules();
-    InitPwmModules();
-    EALLOW;
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =1;
-
-    EDIS;
-    // Enable CPU INT3 which is connected to EPWM1-3 INT:
-        IER |= M_INT3;
-
-    // Enable EPWM INTn in the PIE: Group 3 interrupt 1-3
-        PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-        PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-        PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
     //CpuTimer0Regs.PRD.all = 0xFFFFFFFF;
     CpuTimer0Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     CpuTimer1Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     CpuTimer2Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     IER |= M_INT1;
+    IER |= M_INT3;
     IER |= M_INT13;
     IER |= M_INT14;
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+
     EINT;  // Enable Global interrupt INTM
     ERTM;  // Enable Global realtime interrupt DBGM
+    EALLOW;
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =1;
 
+    EDIS;
     EALLOW;
     WdRegs.WDCR.all = 0x0028;//set the watch dog
     EDIS;
@@ -148,7 +152,7 @@ __interrupt void cpu_timer1_isr(void)
 {
    CpuTimer1.InterruptCount++;
    // The CPU acknowledges the interrupt.
-   //GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+   GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
 
 }
 
@@ -159,55 +163,45 @@ __interrupt void cpu_timer2_isr(void)
    GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
 
 }
-void SetPwmModules(void)
-{
-    CpuSysRegs.PCLKCR2.bit.EPWM1=1; //Enable EWM1 clock
-    EALLOW;
-    GpioCtrlRegs.GPAPUD.bit.GPIO0 = 1; //disable pull up
-    GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1; //disable pull up
-
-    GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 1;//Configure GPIO0 as EPWM1A
-    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;//Configure GPIO1 as EPWM1B
-    EDIS;
-}
-
 __interrupt void epwm1_isr(void)
 {
-    GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
-    somecounter++;
+    // Update the CMPA and CMPB values
+    //update_compare(&epwm1_info);
+    countmeup++;
     // Clear INT flag for this timer
     EPwm1Regs.ETCLR.bit.INT = 1;
+
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
 }
-void InitPwmModules(void)
+void InitEpwm1(void)
 {
-    EPwm1Regs.TBCTL.bit.PHSDIR = 1;
-    EPwm1Regs.TBPRD = 39000;
-    EPwm1Regs.TBCTL.bit.PHSEN = 0;    // Disable phase loading
-    EPwm1Regs.TBPHS.half.TBPHS = 0;       // Phase is 0
-    EPwm1Regs.TBCTR = 0x0000;                  // Clear counter
+    EPwm1Regs.TBPRD = 50000;
+    EPwm1Regs.TBPHS.half.TBPHS = 0x0000;          // Phase is 0
+    EPwm1Regs.TBCTR = 0x0000;                     // Clear counter
+
+    EPwm1Regs.CMPA.half.CMPA = 10000;    // Set compare A value
+    EPwm1Regs.CMPB.half.CMPB = 20000;    // Set Compare B value
+
+    EPwm1Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
+    EPwm1Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
     EPwm1Regs.TBCTL.bit.CLKDIV = 7;  //TBCLOK = EPWMCLOCK/(128*10) = 78125Hz
     EPwm1Regs.TBCTL.bit.HSPCLKDIV = 5;
 
+    EPwm1Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
+    EPwm1Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
 
-    EPwm1Regs.CMPCTL.bit.SHDWAMODE = 0;
-    EPwm1Regs.CMPCTL.bit.SHDWBMODE = 0;
 
-    EPwm1Regs.CMPA.half.CMPA = 20000;    // Set compare A value
-    EPwm1Regs.CMPB.half.CMPB = 20000;    // Set Compare B value
+    EPwm1Regs.AQCTLA.bit.CAU = 2; //set high
+    EPwm1Regs.AQCTLA.bit.CAD = 1; //setlow
 
-    EPwm1Regs.AQCTLA.bit.ZRO = 0; // do nothing when ctr==0
-    EPwm1Regs.AQCTLA.bit.CAU = 2; //set high when CAU
-    EPwm1Regs.AQCTLA.bit.CAD = 1; // set low when CAD
+    EPwm1Regs.AQCTLB.bit.CBU = 2; //set high
+    EPwm1Regs.AQCTLB.bit.CBD = 1; //setlow
 
-    EPwm1Regs.AQCTLB.bit.ZRO = 0; // do nothing when ctr==0
-    EPwm1Regs.AQCTLB.bit.CBU = 2; //set high when CBU
-    EPwm1Regs.AQCTLB.bit.CBD = 1; // set low when CBD
+    EPwm1Regs.ETSEL.bit.INTSEL = 1;//when TBCTR == 0
+    EPwm1Regs.ETSEL.bit.INTEN = 1;                // Enable INT
+    EPwm1Regs.ETPS.bit.INTPRD = 1;           // Generate INT on first event
 
-    EPwm1Regs.ETSEL.bit.INTSEL = 0b100;     // Select INT CMPAU event
-    EPwm1Regs.ETSEL.bit.INTEN = 1;   // Enable INT
-    EPwm1Regs.ETPS.bit.INTPRD = 3; // on everythird event
 
 
 
