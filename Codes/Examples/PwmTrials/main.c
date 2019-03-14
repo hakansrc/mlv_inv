@@ -4,12 +4,19 @@
 void Gpio_Select1();
 void InitSystem();
 void InitEpwm1();
+void InitECapModules();
 
 //interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer1_isr(void);
 __interrupt void cpu_timer2_isr(void);
 __interrupt void epwm1_isr(void);
+__interrupt void ecap4_isr(void);
+
+int iCTRPeriod=0;
+int iCTRDutyCycle=0;
+int iECap1IntCount=0;
+
 int main(void)
 {
 
@@ -40,8 +47,9 @@ int main(void)
     PieVectTable.TIMER1_INT = &cpu_timer1_isr;
     PieVectTable.TIMER2_INT = &cpu_timer2_isr;
     PieVectTable.EPWM1_INT = &epwm1_isr;
+    PieVectTable.ECAP4_INT = &ecap4_isr;
     EDIS;
-
+    InitECapModules();
 
     InitCpuTimers();   // For this example, only initialize the Cpu Timers
     ConfigCpuTimer(&CpuTimer0, 200, 1000); //2 miliseconds
@@ -56,10 +64,12 @@ int main(void)
     CpuTimer2Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     IER |= M_INT1;
     IER |= M_INT3;
+    IER |= M_INT4;
     IER |= M_INT13;
     IER |= M_INT14;
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    PieCtrlRegs.PIEIER4.bit.INTx4 = 1;//enable interrupt for ecap4
 
     EINT;  // Enable Global interrupt INTM
     ERTM;  // Enable Global realtime interrupt DBGM
@@ -206,8 +216,40 @@ void InitEpwm1(void)
     EPwm1Regs.ETSEL.bit.INTSEL = 1;//when TBCTR == 0
     EPwm1Regs.ETSEL.bit.INTEN = 1;                // Enable INT
     EPwm1Regs.ETPS.bit.INTPRD = 1;           // Generate INT on first event
+}
+void InitECapModules()
+{
+    ECap1Regs.ECEINT.all = 0x0000;          // Disable all capture __interrupts
+    ECap1Regs.ECCLR.all = 0xFFFF;           // Clear all CAP __interrupt flags
+    ECap1Regs.ECCTL1.bit.CAPLDEN = 0;       // Disable CAP1-CAP4 register loads
+    ECap1Regs.ECCTL2.bit.TSCTRSTOP = 0;     // Make sure the counter is stopped
 
+    ECap1Regs.ECCTL2.bit.CONT_ONESHT = 0;   // Continuous
+    ECap1Regs.ECCTL2.bit.STOP_WRAP = 3;     // Wrap at 4 events
+    ECap1Regs.ECCTL1.bit.CAP1POL = 0;       // Rising edge
+    ECap1Regs.ECCTL1.bit.CAP2POL = 1;       // Falling edge
+    ECap1Regs.ECCTL1.bit.CAP3POL = 0;       // Rising edge
+    ECap1Regs.ECCTL1.bit.CAP4POL = 1;       // Falling edge
+    ECap1Regs.ECCTL1.bit.CTRRST1 = 0;       // Do not reset when cap1 occurs
+    ECap1Regs.ECCTL1.bit.CTRRST2 = 0;       // Do not reset when cap2 occurs
+    ECap1Regs.ECCTL1.bit.CTRRST3 = 0;       // Do not reset when cap3 occurs
+    ECap1Regs.ECCTL1.bit.CTRRST4 = 1;       // Reset when cap4 occurs
+    ECap1Regs.ECCTL2.bit.SYNCI_EN = 1;      // Enable sync in
+    ECap1Regs.ECCTL2.bit.SYNCO_SEL = 0;     // Pass through  (syncin=syncout)
 
+    ECap1Regs.ECCTL2.bit.TSCTRSTOP = 1;     // Start Counter
+    ECap1Regs.ECCTL2.bit.REARM = 0;         // no effect
+    ECap1Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
+    ECap1Regs.ECEINT.bit.CEVT4 = 1;         // Enable Capture Event 4 Interrupt
 
+}
+__interrupt void ecap4_isr(void)
+{
+    ECap1Regs.ECCLR.bit.INT = 1;     // Clear the ECAP interrupt flags
+    ECap1Regs.ECCLR.bit.CEVT4 = 1;   // Clear the ECAP4 interrupt flag
+    iCTRPeriod=(int32)ECap1Regs.CAP2 - (int32)ECap1Regs.CAP1;
+    iCTRDutyCycle=(int32)ECap1Regs.CAP3 - (int32)ECap1Regs.CAP1;
+    iECap1IntCount++;
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP4; // acknowledge the PIE group 4
 
 }
