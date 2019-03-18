@@ -1,6 +1,6 @@
 #include <F2837xD_Device.h>
 #include <math.h>
-
+//#include <stdio.h>
 void Gpio_Select1();
 void InitSystem();
 void InitEpwm1();
@@ -19,8 +19,10 @@ int iECap1IntCount=0;
 
 int main(void)
 {
-
+    //printf("selamlar");
     InitSysCtrl();// first link F2837xD_SysCtrl.c
+
+
 
     CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;/*enable clock for epwm1*/
     EALLOW;
