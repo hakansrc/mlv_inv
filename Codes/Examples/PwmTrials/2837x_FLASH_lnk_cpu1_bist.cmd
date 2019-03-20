@@ -3,15 +3,14 @@ MEMORY
 {
 PAGE 0 :  /* Program Memory */
           /* Memory (RAM/FLASH) blocks can be moved to PAGE1 for data allocation */
-          /* BEGIN is used for the "boot to Flash" bootloader mode   */
+          /* BEGIN is used for the "boot to SARAM" bootloader mode   */
 
    BEGIN           	: origin = 0x080000, length = 0x000002
    RAMM0           	: origin = 0x000122, length = 0x0002DE
    RAMD0           	: origin = 0x00B000, length = 0x000800
    RAMLS0          	: origin = 0x008000, length = 0x000800
    RAMLS1          	: origin = 0x008800, length = 0x000800
-   RAMLS2      		: origin = 0x009000, length = 0x000800
-   RAMLS3      		: origin = 0x009800, length = 0x000800
+   RAMLS2      		: origin = 0x009000, length = 0x000800 
    RAMLS4      		: origin = 0x00A000, length = 0x000800
    RAMGS14          : origin = 0x01A000, length = 0x001000
    RAMGS15          : origin = 0x01B000, length = 0x001000
@@ -40,6 +39,7 @@ PAGE 1 : /* Data Memory */
    RAMM1           : origin = 0x000400, length = 0x000400     /* on-chip RAM block M1 */
    RAMD1           : origin = 0x00B800, length = 0x000800
 
+   RAMLS3      : origin = 0x009800, length = 0x000800
    RAMLS5      : origin = 0x00A800, length = 0x000800
 
    RAMGS0      : origin = 0x00C000, length = 0x001000
@@ -66,66 +66,34 @@ PAGE 1 : /* Data Memory */
 SECTIONS
 {
    /* Allocate program areas: */
-   .cinit              : > FLASHB      PAGE = 0, ALIGN(4)
-   .pinit              : > FLASHB,     PAGE = 0, ALIGN(4)
-   .text               : >> FLASHB | FLASHC | FLASHD | FLASHE      PAGE = 0, ALIGN(4)
-   codestart           : > BEGIN       PAGE = 0, ALIGN(4)
-
-#ifdef __TI_COMPILER_VERSION__
-   #if __TI_COMPILER_VERSION__ >= 15009000
-    .TI.ramfunc : {} LOAD = FLASHD,
-                         RUN = RAMLS0 | RAMLS1 | RAMLS2 |RAMLS3,
+   .cinit              : > FLASHB      PAGE = 0
+   .pinit              : > FLASHB,     PAGE = 0
+   .text               : > FLASHB      PAGE = 0
+   codestart           : > BEGIN       PAGE = 0
+   ramfuncs            : LOAD = FLASHB,
+                         RUN = RAMLS0 | RAMLS1 | RAMLS2,
                          LOAD_START(_RamfuncsLoadStart),
                          LOAD_SIZE(_RamfuncsLoadSize),
                          LOAD_END(_RamfuncsLoadEnd),
                          RUN_START(_RamfuncsRunStart),
                          RUN_SIZE(_RamfuncsRunSize),
                          RUN_END(_RamfuncsRunEnd),
-                         PAGE = 0, ALIGN(4)
-   #else
-   ramfuncs            : LOAD = FLASHD,
-                         RUN = RAMLS0 | RAMLS1 | RAMLS2 |RAMLS3,
-                         LOAD_START(_RamfuncsLoadStart),
-
-                         LOAD_SIZE(_RamfuncsLoadSize),
-                         LOAD_END(_RamfuncsLoadEnd),
-                         RUN_START(_RamfuncsRunStart),
-                         RUN_SIZE(_RamfuncsRunSize),
-                         RUN_END(_RamfuncsRunEnd),
-                         PAGE = 0, ALIGN(4)   
-   #endif
-#endif
+                         PAGE = 0
 						 
    /* Allocate uninitalized data sections: */
-   .stack              : > RAMM1        PAGE = 1
-   .ebss               : >> RAMLS5 | RAMGS0 | RAMGS1       PAGE = 1
-   .esysmem            : > RAMLS5       PAGE = 1
+   .stack              : > RAMLS3      PAGE = 1
+   .ebss               : > RAMLS3      PAGE = 1
+   .esysmem            : > RAMLS5      PAGE = 1
 
    /* Initalized sections go in Flash */
-   .econst             : >> FLASHF | FLASHG | FLASHH      PAGE = 0, ALIGN(4)
-   .switch             : > FLASHB      PAGE = 0, ALIGN(4)
+   .econst             : > FLASHC      PAGE = 0
+   .switch             : > FLASHB      PAGE = 0
    
    .reset              : > RESET,     PAGE = 0, TYPE = DSECT /* not used, */
 
-   Filter_RegsFile     : > RAMGS0,	   PAGE = 1
+   Filter_RegsFile     : > RAMLS3,	   PAGE = 1
    
-   SHARERAMGS0		: > RAMGS0,		PAGE = 1
-   SHARERAMGS1		: > RAMGS1,		PAGE = 1
-   
-   /* The following section definitions are required when using the IPC API Drivers */ 
-    GROUP : > CPU1TOCPU2RAM, PAGE = 1 
-    {
-        PUTBUFFER 
-        PUTWRITEIDX 
-        GETREADIDX 
-    }
-    
-    GROUP : > CPU2TOCPU1RAM, PAGE = 1
-    {
-        GETBUFFER :    TYPE = DSECT
-        GETWRITEIDX :  TYPE = DSECT
-        PUTREADIDX :   TYPE = DSECT
-    }  
+  
     
 }
 

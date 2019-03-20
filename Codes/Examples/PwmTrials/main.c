@@ -20,6 +20,10 @@ int iECap1IntCount=0;
 int main(void)
 {
     //printf("selamlar");
+    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+    //EDIS;
+    //InitFlash();
+
     InitSysCtrl();// first link F2837xD_SysCtrl.c
 
 
