@@ -20,11 +20,14 @@ int iECap1IntCount=0;
 int main(void)
 {
     //printf("selamlar");
-    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+    //memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
     //EDIS;
     //InitFlash();
 
     InitSysCtrl();// first link F2837xD_SysCtrl.c
+    // if you are using in flash
+    // add 2837x_FLASH_lnk_cpu1_bist.cmd
+    // and add "_FLASH" to your predefined options
 
 
 
@@ -39,6 +42,7 @@ int main(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1;    // Disable pull-up on GPIO1 (EPWM1B)
     GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 1;   // Configure GPIO0 as EPWM1A
     GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;     // Configure GPIO1 as EPWM1B
+    TrigRegs.INPUT10SELECT = 0;
     EDIS;
     DINT; //disable the interrupts
 
@@ -247,6 +251,8 @@ void InitECapModules()
     ECap1Regs.ECCTL2.bit.REARM = 0;         // no effect
     ECap1Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
     ECap1Regs.ECEINT.bit.CEVT4 = 1;         // Enable Capture Event 4 Interrupt
+
+    //ECap1Regs.
 
 }
 __interrupt void ecap4_isr(void)
