@@ -26,6 +26,7 @@ int main(void)
     CpuSysRegs.PCLKCR2.bit.EPWM4 = 1;/*enable clock for epwm1*/
     EALLOW;
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =0;
+    CpuSysRegs.PCLKCR0.bit.GTBCLKSYNC =0;
     /*GPIO selection is as follows
      *GPIO0 generates   A signal of the encoder (check the angle)
      *GPIO2 generates   B signal of the encoder
@@ -82,9 +83,11 @@ int main(void)
     ConfigCpuTimer(&CpuTimer0, 200, 1000); //2 miliseconds
     ConfigCpuTimer(&CpuTimer1, 200, 1000000); //2 seconds
     ConfigCpuTimer(&CpuTimer2, 200, 1000000); //2 seconds
+    EALLOW;
     InitEpwm1();
     InitEpwm2();
     InitEpwm3();
+    EDIS;
     //CpuTimer0Regs.PRD.all = 0xFFFFFFFF;
     CpuTimer0Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     CpuTimer1Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
@@ -93,6 +96,7 @@ int main(void)
     IER |= M_INT3;
     IER |= M_INT13;
     IER |= M_INT14;
+
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
@@ -102,6 +106,7 @@ int main(void)
     ERTM;  // Enable Global realtime interrupt DBGM
     EALLOW;
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =1;
+    CpuSysRegs.PCLKCR0.bit.GTBCLKSYNC =1;
 
     EDIS;
     EALLOW;
@@ -252,6 +257,8 @@ void InitEpwm1(void){
     EPwm1Regs.TBPRD = 5000;
     EPwm1Regs.TBPHS.half.TBPHS = 0;          // Phase is 0
     EPwm1Regs.TBCTR = 0x0000;                     // Clear counter
+    EPwm1Regs.TBCTL.bit.SYNCOSEL = 1;
+    EPwm1Regs.TBCTL.bit.PHSEN = 0;
 
     EPwm1Regs.CMPA.half.CMPA = 2500;    // Set compare A value
     EPwm1Regs.CMPB.half.CMPB = 2500;    // Set Compare B value
@@ -261,8 +268,9 @@ void InitEpwm1(void){
     EPwm1Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
     EPwm1Regs.TBCTL.bit.HSPCLKDIV = 5;
 
-    EPwm1Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
-    EPwm1Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
+    //EPwm1Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
+    //EPwm1Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
+    EPwm1Regs.TBCTL.bit.PHSDIR = 1;
 
 
     EPwm1Regs.AQCTLA.bit.CAU = 2; //set high
@@ -277,8 +285,10 @@ void InitEpwm1(void){
 }
 void InitEpwm2(void){
     EPwm2Regs.TBPRD = 5000;
+    EPwm2Regs.TBCTL.bit.PHSEN = 1;
     EPwm2Regs.TBPHS.half.TBPHS = 2500;          // Phase is 0
     EPwm2Regs.TBCTR = 0x0000;                     // Clear counter
+    EPwm2Regs.TBCTL.bit.SYNCOSEL = 1;
 
     EPwm2Regs.CMPA.half.CMPA = 2500;    // Set compare A value
     EPwm2Regs.CMPB.half.CMPB = 2500;    // Set Compare B value
@@ -287,16 +297,17 @@ void InitEpwm2(void){
     EPwm2Regs.TBCTL.bit.PHSEN = 1; //disable phase loading
     EPwm2Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
     EPwm2Regs.TBCTL.bit.HSPCLKDIV = 5;
+    EPwm2Regs.TBCTL.bit.PHSDIR = 1;
 
-    EPwm2Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
-    EPwm2Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
+    //EPwm2Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
+    //EPwm2Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
 
 
     EPwm2Regs.AQCTLA.bit.CAU = 2; //set high
     EPwm2Regs.AQCTLA.bit.CAD = 1; //setlow
 
-    //EPwm1Regs.AQCTLB.bit.CBU = 2; //set high
-    //EPwm1Regs.AQCTLB.bit.CBD = 1; //setlow
+    EPwm2Regs.AQCTLB.bit.CBU = 2; //set high
+    EPwm2Regs.AQCTLB.bit.CBD = 1; //setlow
 
     EPwm2Regs.ETSEL.bit.INTSEL = 1;//when TBCTR == 0
     EPwm2Regs.ETSEL.bit.INTEN = 1;                // Enable INT
@@ -306,17 +317,18 @@ void InitEpwm3(void){
     EPwm3Regs.TBPRD = 50000;
     EPwm3Regs.TBPHS.half.TBPHS = 0;          // Phase is 0
     EPwm3Regs.TBCTR = 0x0000;                     // Clear counter
+    EPwm3Regs.TBCTL.bit.SYNCOSEL = 1;
 
-    EPwm3Regs.CMPA.half.CMPA = 2500;    // Set compare A value
-    EPwm3Regs.CMPB.half.CMPB = 2500;    // Set Compare B value
+    EPwm3Regs.CMPA.half.CMPA = 45000+2500;    // Set compare A value
+    EPwm3Regs.CMPB.half.CMPB = 45000+2500;    // Set Compare B value
 
     EPwm3Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm3Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
     EPwm3Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
     EPwm3Regs.TBCTL.bit.HSPCLKDIV = 5;
 
-    EPwm3Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
-    EPwm3Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
+    //EPwm3Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
+    //EPwm3Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
 
 
     EPwm3Regs.AQCTLA.bit.CAU = 2; //set high
