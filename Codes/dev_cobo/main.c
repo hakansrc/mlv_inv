@@ -6,7 +6,8 @@ void InitSystem();
 void InitEpwm1();
 void InitEpwm2();
 void InitEpwm3();
-void InitEQep3Gpio(void);
+void InitEQep3Gpio_me(void);
+void InitEQep3Module(void);
 
 //interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer0_isr(void);
@@ -19,12 +20,13 @@ int main(void)
 {
 
     InitSysCtrl();// first link F2837xD_SysCtrl.c
+    EALLOW;
 
     CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;/*enable clock for epwm1*/
     CpuSysRegs.PCLKCR2.bit.EPWM2 = 1;/*enable clock for epwm1*/
     CpuSysRegs.PCLKCR2.bit.EPWM3 = 1;/*enable clock for epwm1*/
     CpuSysRegs.PCLKCR2.bit.EPWM4 = 1;/*enable clock for epwm1*/
-    EALLOW;
+    CpuSysRegs.PCLKCR4.bit.EQEP3 = 1;/*enable clock for EQEP3*/
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC =0;
     CpuSysRegs.PCLKCR0.bit.GTBCLKSYNC =0;
     /*GPIO selection is as follows
@@ -61,7 +63,6 @@ int main(void)
     /*******************************************/
     EDIS;
     DINT; //disable the interrupts
-    InitEQep3Gpio();
 
     InitPieCtrl();// first link F2837xD_PieCtrl.c
     IER = 0x0000;
@@ -77,17 +78,21 @@ int main(void)
     PieVectTable.EPWM2_INT = &epwm2_isr;
     PieVectTable.EPWM3_INT = &epwm3_isr;
     EDIS;
-
-
-    InitCpuTimers();   // For this example, only initialize the Cpu Timers
-    ConfigCpuTimer(&CpuTimer0, 200, 1000); //2 miliseconds
-    ConfigCpuTimer(&CpuTimer1, 200, 1000000); //2 seconds
-    ConfigCpuTimer(&CpuTimer2, 200, 1000000); //2 seconds
     EALLOW;
     InitEpwm1();
     InitEpwm2();
     InitEpwm3();
     EDIS;
+    InitEQep3Gpio_me();
+    EALLOW;
+    InitEQep3Module();
+    EDIS;
+
+    InitCpuTimers();   // For this example, only initialize the Cpu Timers
+    ConfigCpuTimer(&CpuTimer0, 200, 1000); //2 miliseconds
+    ConfigCpuTimer(&CpuTimer1, 200, 1000000); //2 seconds
+    ConfigCpuTimer(&CpuTimer2, 200, 1000000); //2 seconds
+
     //CpuTimer0Regs.PRD.all = 0xFFFFFFFF;
     CpuTimer0Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
     CpuTimer1Regs.TCR.all = 0x4000; // Use write-only instruction to set TSS bit = 0
@@ -319,8 +324,8 @@ void InitEpwm3(void){
     EPwm3Regs.TBCTR = 0x0000;                     // Clear counter
     EPwm3Regs.TBCTL.bit.SYNCOSEL = 1;
 
-    EPwm3Regs.CMPA.half.CMPA = 45000+2500;    // Set compare A value
-    EPwm3Regs.CMPB.half.CMPB = 45000+2500;    // Set Compare B value
+    EPwm3Regs.CMPA.half.CMPA = 42500+2500;    // Set compare A value
+    EPwm3Regs.CMPB.half.CMPB = 42500+2500;    // Set Compare B value
 
     EPwm3Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm3Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
@@ -341,7 +346,72 @@ void InitEpwm3(void){
     EPwm3Regs.ETSEL.bit.INTEN = 1;                // Enable INT
     EPwm3Regs.ETPS.bit.INTPRD = 1;
 }
-void InitEQep3Gpio(void)
+
+void InitEQep3Module(void)
+{
+    EQep3Regs.QPOSCTL.all = 0x0000;/*position compare is closed*/
+
+    EQep3Regs.QCAPCTL.bit.CEN = 1; /*EQep enabled*/
+    EQep3Regs.QCAPCTL.bit.CCPS = 0; //EQepclock = SYSCLOCK/1
+    EQep3Regs.QCAPCTL.bit.UPPS = 0; //unit position prescaler (set as it is)
+
+    EQep3Regs.QEINT.all = 0x0000; /*no interrupts */
+    EQep3Regs.QFLG.all = 0; /*interrupt flags*/
+    EQep3Regs.QCLR.all = 0; /*clear interrupt flags*/
+    EQep3Regs.QFRC.all = 0; /*QEP ýnterrupt force (disabled for now)*/
+    //EQep3Regs.QEPSTS.all = 0; /*qep status can be read from here*/
+    EQep3Regs.QCTMR = 0; /*QEP capture timer*/
+    EQep3Regs.QCPRD = 0; /*QEP capture period*/
+    EQep3Regs.QCTMRLAT = 0; /*QEP capture timer latch*/
+    EQep3Regs.QCPRDLAT = 0;/*QEP capture timer period*/
+
+    EQep3Regs.QPOSCNT = 0;
+    EQep3Regs.QPOSINIT = 0;
+    EQep3Regs.QPOSMAX = 0xFF;
+    EQep3Regs.QPOSCMP = 0;
+    //QPOSILAT
+    //QPOSSLAT
+    //QPOSLAT
+    //QUTMR
+    //QUPRD
+    //QWDTMR
+    //QWDPRD
+    EQep3Regs.QDECCTL.bit.QSRC = 0; //quadrature mode
+    EQep3Regs.QDECCTL.bit.SOEN = 0; //syncout disable
+    EQep3Regs.QDECCTL.bit.SPSEL = 0; // Index pin is used for sync output
+    EQep3Regs.QDECCTL.bit.XCR = 0; // external clock rate is  selected as 2x resolution
+    EQep3Regs.QDECCTL.bit.SWAP = 0; //QUADRATURE inputs are not swapped
+    EQep3Regs.QDECCTL.bit.IGATE = 0; // disable gating of index
+    EQep3Regs.QDECCTL.bit.QAP = 0; //QEPA polarity (dont revert)
+    EQep3Regs.QDECCTL.bit.QBP = 0; //QEPB polarity (dont revert)
+    EQep3Regs.QDECCTL.bit.QIP = 0; //QEPI polarity (dont revert)
+    EQep3Regs.QDECCTL.bit.QSP = 0; //QEPS polarity (dont revert)
+
+    EQep3Regs.QEPCTL.bit.PCRM = 0; // reset counter at index event
+    EQep3Regs.QEPCTL.bit.SEI = 0; //strobe event does nothing
+    EQep3Regs.QEPCTL.bit.IEI = 0;/*
+    0h (R/W) = Do nothing (action disabled)
+    1h (R/W) = Do nothing (action disabled)
+    2h (R/W) = Initializes the position counter on the rising edge of the
+    QEPI signal (QPOSCNT = QPOSINIT)
+    3h (R/W) = Initializes the position counter on the falling edge of
+    QEPI signal (QPOSCNT = QPOSINIT) */
+    EQep3Regs.QEPCTL.bit.SWI = 1;/*
+    Software init position counter
+    0h (R/W) = Do nothing (action disabled)
+    1h (R/W) = Initialize position counter (QPOSCNT=QPOSINIT). This
+    bit is not cleared automatically     */
+    EQep3Regs.QEPCTL.bit.SEL = 0; // strobe event latch related
+    EQep3Regs.QEPCTL.bit.IEL = 1;// Index event latch related
+    EQep3Regs.QEPCTL.bit.QPEN = 0; //Quadrature position counter enable/software reset (disabled)
+    EQep3Regs.QEPCTL.bit.QCLM = 0; //Latch on position counter read by CPU.
+    EQep3Regs.QEPCTL.bit.UTE = 0; //unit timer disabled
+    EQep3Regs.QEPCTL.bit.WDE = 0; //watch dog disabled
+
+
+
+}
+void InitEQep3Gpio_me(void)
 {
     EALLOW;
 
@@ -349,7 +419,6 @@ void InitEQep3Gpio(void)
        for reduced power consumption */
     // Pull-ups can be enabled or disabled by the user.
     // Comment out other unwanted lines.
-
   GpioCtrlRegs.GPAPUD.bit.GPIO6 = 1;     // Disable pull-up on GPIO6 (EQEP3A)
   GpioCtrlRegs.GPAPUD.bit.GPIO7 = 1;     // Disable pull-up on GPIO7 (EQEP3B)
   GpioCtrlRegs.GPAPUD.bit.GPIO8 = 1;     // Disable pull-up on GPIO8 (EQEP3S)

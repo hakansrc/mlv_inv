@@ -84,6 +84,7 @@
 						<tool id="com.ti.ccstudio.buildDefinitions.C2000_18.1.exe.compilerDebug.241527049.857798231" name="C2000 Compiler" superClass="com.ti.ccstudio.buildDefinitions.C2000_18.1.exe.compilerDebug.241527049">
 							<option id="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.PREINCLUDE.2018649096" name="Specify a preinclude file (--preinclude)" superClass="com.ti.ccstudio.buildDefinitions.C2000_18.1.compilerID.PREINCLUDE" valueType="includeFiles">
 								<listOptionValue builtIn="false" value="C:\ti\controlSUITE\device_support\F2837xD\v100\F2837xD_common\source\F2837xD_PieVect.c"/>
+								<listOptionValue builtIn="false" value="C:\ti\controlSUITE\device_support\F2837xD\v100\F2837xD_common\source\F2837xD_EQep.c"/>
 								<listOptionValue builtIn="false" value="C:\ti\controlSUITE\device_support\F2837xD\v100\F2837xD_common\source\F2837xD_SysCtrl.c"/>
 								<listOptionValue builtIn="false" value="C:\ti\controlSUITE\device_support\F2837xD\v100\F2837xD_common\source\F2837xD_CpuTimers.c"/>
 								<listOptionValue builtIn="false" value="C:\ti\controlSUITE\device_support\F2837xD\v100\F2837xD_common\source\F2837xD_DefaultISR.c"/>
