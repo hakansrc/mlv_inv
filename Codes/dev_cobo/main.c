@@ -352,7 +352,7 @@ void InitEQep3Module(void)
     EQep3Regs.QPOSCTL.all = 0x0000;/*position compare is closed*/
 
     EQep3Regs.QCAPCTL.bit.CEN = 1; /*EQep enabled*/
-    EQep3Regs.QCAPCTL.bit.CCPS = 0; //EQepclock = SYSCLOCK/1
+    EQep3Regs.QCAPCTL.bit.CCPS = 7; //EQepclock = SYSCLOCK/1
     EQep3Regs.QCAPCTL.bit.UPPS = 0; //unit position prescaler (set as it is)
 
     EQep3Regs.QEINT.all = 0x0000; /*no interrupts */
@@ -389,7 +389,7 @@ void InitEQep3Module(void)
 
     EQep3Regs.QEPCTL.bit.PCRM = 0; // reset counter at index event
     EQep3Regs.QEPCTL.bit.SEI = 0; //strobe event does nothing
-    EQep3Regs.QEPCTL.bit.IEI = 0;/*
+    EQep3Regs.QEPCTL.bit.IEI = 2;/*
     0h (R/W) = Do nothing (action disabled)
     1h (R/W) = Do nothing (action disabled)
     2h (R/W) = Initializes the position counter on the rising edge of the
