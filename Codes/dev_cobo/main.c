@@ -1,6 +1,8 @@
 #include <F2837xD_Device.h>
 #include <math.h>
 
+double angular_speed=0;
+
 void Gpio_Select1();
 void InitSystem();
 void InitEpwm1();
@@ -49,19 +51,19 @@ int main(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1;    // Disable pull-up on GPIO1 (EPWM1B)
 
     GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 1;   // Configure GPIO0 as EPWM1A
-    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;     // Configure GPIO1 as EPWM1B
+    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;   // Configure GPIO1 as EPWM1B
 
     GpioCtrlRegs.GPAPUD.bit.GPIO2 = 1;    // Disable pull-up on GPIO2 (EPWM2A)
-    GpioCtrlRegs.GPAPUD.bit.GPIO3 = 1;    // Disable pull-up on GPIO3
+    GpioCtrlRegs.GPAPUD.bit.GPIO3 = 1;    // Disable pull-up on GPIO3 (EPWM2B)
 
     GpioCtrlRegs.GPAMUX1.bit.GPIO2 = 1;   // Configure GPIO2 as EPWM2A
-    GpioCtrlRegs.GPAMUX1.bit.GPIO3 = 1;     // Configure GPIO3 as EPWM2B
+    GpioCtrlRegs.GPAMUX1.bit.GPIO3 = 1;   // Configure GPIO3 as EPWM2B
 
-    GpioCtrlRegs.GPAPUD.bit.GPIO4 = 1;    // Disable pull-up on GPIO2 (EPWM2A)
-    GpioCtrlRegs.GPAPUD.bit.GPIO5 = 1;    // Disable pull-up on GPIO3
+    GpioCtrlRegs.GPAPUD.bit.GPIO4 = 1;    // Disable pull-up on GPIO4 (EPWM3A)
+    GpioCtrlRegs.GPAPUD.bit.GPIO5 = 1;    // Disable pull-up on GPIO5 (EPWM3B)
 
-    GpioCtrlRegs.GPAMUX1.bit.GPIO4 = 1;   // Configure GPIO2 as EPWM2A
-    GpioCtrlRegs.GPAMUX1.bit.GPIO5 = 1;     // Configure GPIO3 as EPWM2B
+    GpioCtrlRegs.GPAMUX1.bit.GPIO4 = 1;   // Configure GPIO4 as EPWM3A
+    GpioCtrlRegs.GPAMUX1.bit.GPIO5 = 1;   // Configure GPIO5 as EPWM3B
     /*******************************************/
     EDIS;
     DINT; //disable the interrupts
@@ -124,6 +126,17 @@ int main(void)
         {}
         WdRegs.WDKEY.all = 0x55;// serve to watchdog
         CpuTimer0.InterruptCount = 0;
+        if(EQep3Regs.QFLG.bit.UTO) // if unit timeout occured
+        {
+            //if(EQep3Regs.QFLG.bit.IEL) // if IEL occured
+            EQep3Regs.QEPCTL.bit.QCLM = 0; // stop updating latches
+            angular_speed = (double) EQep3Regs.QPOSILAT/(double)EQep3Regs.QCPRDLAT;
+            EQep3Regs.QCLR.bit.IEL = 1; //clear interrupts flag
+            EQep3Regs.QCLR.bit.UTO = 1; //clear interrupts flag
+            EQep3Regs.QEPCTL.bit.QCLM = 1; // continue updating latches
+
+        }
+
 
     }
 
@@ -204,7 +217,7 @@ __interrupt void cpu_timer1_isr(void)
 {
    CpuTimer1.InterruptCount++;
    // The CPU acknowledges the interrupt.
-    //GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+    GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
 
 }
 
@@ -212,7 +225,7 @@ __interrupt void cpu_timer2_isr(void)
 {
    CpuTimer2.InterruptCount++;
    // The CPU acknowledges the interrupt.
-   //GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
+   GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
 
 }
 __interrupt void epwm1_isr(void)
@@ -221,7 +234,7 @@ __interrupt void epwm1_isr(void)
     //update_compare(&epwm1_info);
     // Clear INT flag for this timer
     EPwm1Regs.ETCLR.bit.INT = 1;
-    GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+    //GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
     //EPwm1Regs.TBCTR = 0x0000;                     // Clear counter
 
    /*
@@ -237,7 +250,7 @@ __interrupt void epwm1_isr(void)
 __interrupt void epwm2_isr(void)
 {
     EPwm2Regs.ETCLR.bit.INT = 1;
-    GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
+    //GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
     //EPwm2Regs.TBCTR = 0x0000;                     // Clear counter
 
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
@@ -325,8 +338,8 @@ void InitEpwm3(void){
     EPwm3Regs.TBCTR = 0x0000;                     // Clear counter
     EPwm3Regs.TBCTL.bit.SYNCOSEL = 1;
 
-    EPwm3Regs.CMPA.half.CMPA = 42500+2500;    // Set compare A value
-    EPwm3Regs.CMPB.half.CMPB = 42500+2500;    // Set Compare B value
+    EPwm3Regs.CMPA.half.CMPA = 42500+2500+4500;    // Set compare A value
+    EPwm3Regs.CMPB.half.CMPB = 42500+2500+4500;    // Set Compare B value
 
     EPwm3Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm3Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
@@ -350,22 +363,68 @@ void InitEpwm3(void){
 
 void InitEQep3Module(void)
 {
+    /*the formula will be X/(t(k)-t(k-1)) at low  speeds, can be used with UPEVNT */
+    /*the formula will be (x(k)-x(k-1))/T at high speeds, can be used with eqep unit timer or CAPCLK */
 
     EQep3Regs.QUPRD=2000000;            // Unit Timer for 100Hz at 200 MHz SYSCLKOUT
 
     EQep3Regs.QDECCTL.bit.QSRC=2;       // Up count mode (freq. measurement)
     EQep3Regs.QDECCTL.bit.XCR=0;        // 2x resolution (cnt falling and rising edges)
 
-    EQep3Regs.QEPCTL.bit.FREE_SOFT=2;
-    EQep3Regs.QEPCTL.bit.PCRM=00;       // QPOSCNT reset on index evnt
-    EQep3Regs.QEPCTL.bit.UTE=1;         // Unit Timer Enable
-    EQep3Regs.QEPCTL.bit.QCLM=1;        // Latch on unit time out
-    EQep3Regs.QPOSMAX=0xffffffff;
-    EQep3Regs.QEPCTL.bit.QPEN=1;        // QEP enable
 
-    EQep3Regs.QCAPCTL.bit.UPPS=3;       // 1/8 for unit position
-    EQep3Regs.QCAPCTL.bit.CCPS=7;       // 1/128 for CAP clock
+    EQep3Regs.QEPCTL.bit.FREE_SOFT=2;   // QPOSCNT is not affected by emulation suspend
+    EQep3Regs.QEPCTL.bit.PCRM=00;       // QPOSCNT reset on index event
+    EQep3Regs.QEPCTL.bit.SEI = 0;       // Strobe event is not initialized
+    EQep3Regs.QEPCTL.bit.IEI = 0;       // Initialize the position counter on the rising edge (1 for falling) of QEPI signal
+    EQep3Regs.QEPCTL.bit.SWI = 0;       // Disabled. (Initializes the position counter (QPOSCNT=QPOSINIT) )
+    EQep3Regs.QEPCTL.bit.SEL = 0;       // QPOSCNT is latched on rising edge (1 for falling) of QEPS strobe event (QPOSSLAT = QPOSCNT)
+    EQep3Regs.QEPCTL.bit.IEL = 0;       // QPOSCNT is latched on rising edge (1 for falling) of QEPI event (QPOISLAT = QPOSCNT)
+    EQep3Regs.QEPCTL.bit.QPEN=1;        // QEP enable
+    EQep3Regs.QEPCTL.bit.QCLM=1;        // Latch on unit time out
+    EQep3Regs.QEPCTL.bit.UTE=1;         // Unit Timer Enable (unit timer value set from QCAPCTL)
+    EQep3Regs.QEPCTL.bit.WDE=1;         // watchdog of eqep disabled
+
+    EQep3Regs.QPOSINIT = 0;             // Initial QPOSCNT , QPOSCNT set to zero on index event (or strobe or software if desired)
+    EQep3Regs.QPOSMAX=0xffffffff;       // Max value of QPOSCNT
+    EQep3Regs.QPOSCMP = 100;            // This value is compared to QPOSCNT value to generate SYNCO signal,can be enabled from QDECCTL[SOEN]
+
+    EQep3Regs.QCAPCTL.bit.UPPS=2;       // UPEVNT = QCLK/4 , QCLK is triggered in every rising or falling edge of A or B
+    EQep3Regs.QCAPCTL.bit.CCPS=7;       // CAPCLK = SYSCLKOUT/128
     EQep3Regs.QCAPCTL.bit.CEN=1;        // QEP Capture Enable
+
+    EQep3Regs.QPOSCTL.bit.PCSHDW = 0;   // shadow disabled
+    EQep3Regs.QPOSCTL.bit.PCLOAD = 0;   // does not matter, shadow already disabled
+    EQep3Regs.QPOSCTL.bit.PCPOL = 0;    // polarity of sync output is set to high pulse output
+    EQep3Regs.QPOSCTL.bit.PCE = 1;      // position compare enable
+    EQep3Regs.QPOSCTL.bit.PCSPW = 0xFFF;// Select-position-compare sync output pulse width, 4096 * 4 * SYSCLKOUT cycles
+
+    EQep3Regs.QEINT.all = 0;            // interrupts disabled
+    EQep3Regs.QEINT.bit.UTO = 1;        // unit timeout interrupt enabled, check QCAPCTL.bit.CCPS (NOTE: can be used for speed calculations at high speeds,check technical reference manual page 1996)
+    EQep3Regs.QEINT.bit.IEL = 1;        // Index event latch interrupt enabled
+
+    EQep3Regs.QFLG.all = 0;             // Interrupts are flagged here
+    EQep3Regs.QCLR.all = 0;             // QEP Interrupt Clear
+
+    EQep3Regs.QFRC.all = 0b0;           // QEP Interrupt Force, no idea why it is needed
+
+    EQep3Regs.QEPSTS.bit.UPEVNT  = 0;   // shows if UPEVNT happened
+    EQep3Regs.QEPSTS.bit.FIDF    = 0;   // first index direction flag, 0 is CCW, 1 is CW
+    EQep3Regs.QEPSTS.bit.QDF     = 0;   // direction flag,             0 is CCW, 1 is CW
+    EQep3Regs.QEPSTS.bit.QDLF    = 0;   // direction latch flag,             0 is CCW, 1 is CW
+    EQep3Regs.QEPSTS.bit.COEF    = 0;   // overlow flag, 0 is not occured, 1 is occured
+    EQep3Regs.QEPSTS.bit.CDEF    = 0;   // capture direction error flag
+    EQep3Regs.QEPSTS.bit.FIMF    = 0;   // Set by first occurrence of index pulse
+    EQep3Regs.QEPSTS.bit.PCEF    = 0;   // Position counter error flag
+
+    /*The capture timer (QCTMR) value is latched into the capture period register (QCPRD) on every unit (UPEVNT) position*/
+    EQep3Regs.QCTMR            = 0;     // This register provides time base for edge capture unit. 16 bit
+    EQep3Regs.QCPRD            = 0;     // This register holds the period count value between the last successive eQEP position events
+    EQep3Regs.QCTMRLAT         = 0;     // QCTMR latch register, latching can be stopped by clearing QEPCTL[QCLM] register
+    EQep3Regs.QCPRDLAT         = 0;     // QCPRD latch register, latching can be stopped by clearing QEPCTL[QCLM] register
+
+
+
+
 
 }
 void InitEQep3Gpio_me(void)
