@@ -1,7 +1,21 @@
 #include <F2837xD_Device.h>
 #include <math.h>
 
-double angular_speed=0;
+double dAngularSpeed=0;
+double dTimerCoefficient=0;
+unsigned int uiHighSpeedFlag=1; //0:low speed, 1 high speed
+unsigned int uiPositionLatched = 0;
+unsigned int uiPositionLatchedPrevious = 0;
+unsigned int uiDirectonOfRotation = 0; //CW=0,CCW=1
+unsigned int uiPositionTotalCounted;
+unsigned int uiUpEventValue=8;
+
+#define HIGHSPEED           1
+#define LOWSPEED            0
+#define CLOCKWISE           1
+#define COUNTERCLOCKWISE    0
+#define CLOCKHZ             200000000 //200MHz
+#define EQEP3UNITTIMECOEFF   (double)CLOCKHZ/((double)EQep3Regs.QUPRD)
 
 void Gpio_Select1();
 void InitSystem();
@@ -10,6 +24,7 @@ void InitEpwm2();
 void InitEpwm3();
 void InitEQep3Gpio_me(void);
 void InitEQep3Module(void);
+void PositionSpeedCalculate(void);
 
 //interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer0_isr(void);
@@ -126,20 +141,30 @@ int main(void)
         {}
         WdRegs.WDKEY.all = 0x55;// serve to watchdog
         CpuTimer0.InterruptCount = 0;
+#if 0
         if(EQep3Regs.QFLG.bit.UTO) // if unit timeout occured
         {
             //if(EQep3Regs.QFLG.bit.IEL) // if IEL occured
             EQep3Regs.QEPCTL.bit.QCLM = 0; // stop updating latches
-            angular_speed = (double) EQep3Regs.QPOSILAT/(double)EQep3Regs.QCPRDLAT;
+            dAngularSpeed = (double) EQep3Regs.QPOSILAT/(double)EQep3Regs.QCPRDLAT;
             EQep3Regs.QCLR.bit.IEL = 1; //clear interrupts flag
             EQep3Regs.QCLR.bit.UTO = 1; //clear interrupts flag
             EQep3Regs.QEPCTL.bit.QCLM = 1; // continue updating latches
 
         }
-
-
+#endif
+        if(uiHighSpeedFlag==LOWSPEED)
+        {
+            EQep3Regs.QEPCTL.bit.PCRM= 3;       // QPOSCNT reset on unittime event
+            EQep3Regs.QEPCTL.bit.QCLM= 0;       // Latch on read
+        }
+        else if (uiHighSpeedFlag==HIGHSPEED)
+        {
+            EQep3Regs.QEPCTL.bit.PCRM= 1;       // QPOSCNT reset on QPOSMAX
+            EQep3Regs.QEPCTL.bit.QCLM= 1;       // Latch on unit timeout
+        }
+        PositionSpeedCalculate();
     }
-
 }
 
 void Gpio_Select1()
@@ -206,26 +231,26 @@ void InitSystem(void)
 }
 __interrupt void cpu_timer0_isr(void)
 {
-   CpuTimer0.InterruptCount++;
-   WdRegs.WDKEY.all = 0xAA;
+    CpuTimer0.InterruptCount++;
+    WdRegs.WDKEY.all = 0xAA;
 
-   // Acknowledge this interrupt to receive more interrupts from group 1
-   PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+    // Acknowledge this interrupt to receive more interrupts from group 1
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
 __interrupt void cpu_timer1_isr(void)
 {
-   CpuTimer1.InterruptCount++;
-   // The CPU acknowledges the interrupt.
+    CpuTimer1.InterruptCount++;
+    // The CPU acknowledges the interrupt.
     GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
 
 }
 
 __interrupt void cpu_timer2_isr(void)
 {
-   CpuTimer2.InterruptCount++;
-   // The CPU acknowledges the interrupt.
-   GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
+    CpuTimer2.InterruptCount++;
+    // The CPU acknowledges the interrupt.
+    GpioDataRegs.GPATOGGLE.bit.GPIO31 = 1;
 
 }
 __interrupt void epwm1_isr(void)
@@ -237,12 +262,12 @@ __interrupt void epwm1_isr(void)
     //GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
     //EPwm1Regs.TBCTR = 0x0000;                     // Clear counter
 
-   /*
-    *if(EPwm1Regs.CMPA.half.CMPA>=45000)
-    *    EPwm1Regs.CMPA.half.CMPA=0;    // Set compare A value
-    *else
-    *    EPwm1Regs.CMPA.half.CMPA+=1000;
-    */
+    /*
+     *if(EPwm1Regs.CMPA.half.CMPA>=45000)
+     *    EPwm1Regs.CMPA.half.CMPA=0;    // Set compare A value
+     *else
+     *    EPwm1Regs.CMPA.half.CMPA+=1000;
+     */
 
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
@@ -262,12 +287,12 @@ __interrupt void epwm3_isr(void)
     // Clear INT flag for this timer
     EPwm3Regs.ETCLR.bit.INT = 1;
     //GpioDataRegs.GPATOGGLE.bit.GPIO1  = 1;
-   /*
-    *if(EPwm1Regs.CMPA.half.CMPA>=45000)
-    *    EPwm1Regs.CMPA.half.CMPA=0;    // Set compare A value
-    *else
-    *    EPwm1Regs.CMPA.half.CMPA+=1000;
-    */
+    /*
+     *if(EPwm1Regs.CMPA.half.CMPA>=45000)
+     *    EPwm1Regs.CMPA.half.CMPA=0;    // Set compare A value
+     *else
+     *    EPwm1Regs.CMPA.half.CMPA+=1000;
+     */
 
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
@@ -284,8 +309,8 @@ void InitEpwm1(void){
 
     EPwm1Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm1Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
-    EPwm1Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
-    EPwm1Regs.TBCTL.bit.HSPCLKDIV = 5;
+    EPwm1Regs.TBCTL.bit.CLKDIV = 0; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
+    EPwm1Regs.TBCTL.bit.HSPCLKDIV = 0;
 
     //EPwm1Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
     //EPwm1Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
@@ -314,9 +339,9 @@ void InitEpwm2(void){
 
     EPwm2Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm2Regs.TBCTL.bit.PHSEN = 1; //disable phase loading
-    EPwm2Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
-    EPwm2Regs.TBCTL.bit.HSPCLKDIV = 5;
-    EPwm2Regs.TBCTL.bit.PHSDIR = 1;
+    EPwm2Regs.TBCTL.bit.CLKDIV = 2; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
+    EPwm2Regs.TBCTL.bit.HSPCLKDIV = 0;
+    EPwm2Regs.TBCTL.bit.PHSDIR = 0;
 
     //EPwm2Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
     //EPwm2Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
@@ -343,8 +368,8 @@ void InitEpwm3(void){
 
     EPwm3Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm3Regs.TBCTL.bit.PHSEN = 0; //disable phase loading
-    EPwm3Regs.TBCTL.bit.CLKDIV = 6; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
-    EPwm3Regs.TBCTL.bit.HSPCLKDIV = 5;
+    EPwm3Regs.TBCTL.bit.CLKDIV = 0; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
+    EPwm3Regs.TBCTL.bit.HSPCLKDIV = 0;
 
     //EPwm3Regs.CMPCTL.bit.SHDWAMODE = 1;//only active registers are used
     //EPwm3Regs.CMPCTL.bit.SHDWBMODE = 1;//only active registers are used
@@ -366,14 +391,14 @@ void InitEQep3Module(void)
     /*the formula will be X/(t(k)-t(k-1)) at low  speeds, can be used with UPEVNT */
     /*the formula will be (x(k)-x(k-1))/T at high speeds, can be used with eqep unit timer or CAPCLK */
 
-    EQep3Regs.QUPRD=2000000;            // Unit Timer for 100Hz at 200 MHz SYSCLKOUT
+    EQep3Regs.QUPRD=200;            // Unit Timer for 100Hz at 200 MHz SYSCLKOUT
 
     EQep3Regs.QDECCTL.bit.QSRC=2;       // Up count mode (freq. measurement)
     EQep3Regs.QDECCTL.bit.XCR=0;        // 2x resolution (cnt falling and rising edges)
 
 
     EQep3Regs.QEPCTL.bit.FREE_SOFT=2;   // QPOSCNT is not affected by emulation suspend
-    EQep3Regs.QEPCTL.bit.PCRM=00;       // QPOSCNT reset on index event
+    EQep3Regs.QEPCTL.bit.PCRM= 3;       // QPOSCNT reset on unittime event
     EQep3Regs.QEPCTL.bit.SEI = 0;       // Strobe event is not initialized
     EQep3Regs.QEPCTL.bit.IEI = 0;       // Initialize the position counter on the rising edge (1 for falling) of QEPI signal
     EQep3Regs.QEPCTL.bit.SWI = 0;       // Disabled. (Initializes the position counter (QPOSCNT=QPOSINIT) )
@@ -388,7 +413,7 @@ void InitEQep3Module(void)
     EQep3Regs.QPOSMAX=0xffffffff;       // Max value of QPOSCNT
     EQep3Regs.QPOSCMP = 100;            // This value is compared to QPOSCNT value to generate SYNCO signal,can be enabled from QDECCTL[SOEN]
 
-    EQep3Regs.QCAPCTL.bit.UPPS=2;       // UPEVNT = QCLK/4 , QCLK is triggered in every rising or falling edge of A or B
+    EQep3Regs.QCAPCTL.bit.UPPS=0x3;      // UPEVNT = QCLK/32 , QCLK is triggered in every rising or falling edge of A or B
     EQep3Regs.QCAPCTL.bit.CCPS=7;       // CAPCLK = SYSCLKOUT/128
     EQep3Regs.QCAPCTL.bit.CEN=1;        // QEP Capture Enable
 
@@ -435,35 +460,128 @@ void InitEQep3Gpio_me(void)
        for reduced power consumption */
     // Pull-ups can be enabled or disabled by the user.
     // Comment out other unwanted lines.
-  GpioCtrlRegs.GPAPUD.bit.GPIO6 = 1;     // Disable pull-up on GPIO6 (EQEP3A)
-  GpioCtrlRegs.GPAPUD.bit.GPIO7 = 1;     // Disable pull-up on GPIO7 (EQEP3B)
-  GpioCtrlRegs.GPAPUD.bit.GPIO8 = 1;     // Disable pull-up on GPIO8 (EQEP3S)
-  GpioCtrlRegs.GPAPUD.bit.GPIO9 = 1;     // Disable pull-up on GPIO9 (EQEP3I)
+    GpioCtrlRegs.GPAPUD.bit.GPIO6 = 1;     // Disable pull-up on GPIO6 (EQEP3A)
+    GpioCtrlRegs.GPAPUD.bit.GPIO7 = 1;     // Disable pull-up on GPIO7 (EQEP3B)
+    GpioCtrlRegs.GPAPUD.bit.GPIO8 = 1;     // Disable pull-up on GPIO8 (EQEP3S)
+    GpioCtrlRegs.GPAPUD.bit.GPIO9 = 1;     // Disable pull-up on GPIO9 (EQEP3I)
 
 
     /* Synchronize inputs to SYSCLK */
     // Synchronization can be enabled or disabled by the user.
     // Comment out other unwanted lines.
 
-  GpioCtrlRegs.GPAQSEL1.bit.GPIO6 = 0;    // Sync GPIO6 to SYSCLK  (EQEP3A)
-  GpioCtrlRegs.GPAQSEL1.bit.GPIO7 = 0;    // Sync GPIO7 to SYSCLK  (EQEP3B)
-  GpioCtrlRegs.GPAQSEL1.bit.GPIO8 = 0;    // Sync GPIO8 to SYSCLK  (EQEP3S)
-  GpioCtrlRegs.GPAQSEL1.bit.GPIO9 = 0;    // Sync GPIO9 to SYSCLK  (EQEP3I)
+    GpioCtrlRegs.GPAQSEL1.bit.GPIO6 = 0;    // Sync GPIO6 to SYSCLK  (EQEP3A)
+    GpioCtrlRegs.GPAQSEL1.bit.GPIO7 = 0;    // Sync GPIO7 to SYSCLK  (EQEP3B)
+    GpioCtrlRegs.GPAQSEL1.bit.GPIO8 = 0;    // Sync GPIO8 to SYSCLK  (EQEP3S)
+    GpioCtrlRegs.GPAQSEL1.bit.GPIO9 = 0;    // Sync GPIO9 to SYSCLK  (EQEP3I)
 
 
     /* Configure EQEP-1 pins using GPIO regs*/
     // This specifies which of the possible GPIO pins will be EQEP3 functional pins.
     // Comment out other unwanted lines.
 
-  GpioCtrlRegs.GPAGMUX1.bit.GPIO6 = 1;    // Configure GPIO6 as EQEP3A
-  GpioCtrlRegs.GPAMUX1.bit.GPIO6 = 1;     // Configure GPIO6 as EQEP3A
-  GpioCtrlRegs.GPAGMUX1.bit.GPIO7 = 1;    // Configure GPIO7 as EQEP3B
-  GpioCtrlRegs.GPAMUX1.bit.GPIO7 = 1;     // Configure GPIO7 as EQEP3B
-  GpioCtrlRegs.GPAGMUX1.bit.GPIO8 = 1;    // Configure GPIO8 as EQEP3S
-  GpioCtrlRegs.GPAMUX1.bit.GPIO8 = 1;     // Configure GPIO8 as EQEP3S
-  GpioCtrlRegs.GPAGMUX1.bit.GPIO9 = 1;    // Configure GPIO9 as EQEP3I
-  GpioCtrlRegs.GPAMUX1.bit.GPIO9 = 1;     // Configure GPIO9 as EQEP3I
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO6 = 1;    // Configure GPIO6 as EQEP3A
+    GpioCtrlRegs.GPAMUX1.bit.GPIO6 = 1;     // Configure GPIO6 as EQEP3A
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO7 = 1;    // Configure GPIO7 as EQEP3B
+    GpioCtrlRegs.GPAMUX1.bit.GPIO7 = 1;     // Configure GPIO7 as EQEP3B
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO8 = 1;    // Configure GPIO8 as EQEP3S
+    GpioCtrlRegs.GPAMUX1.bit.GPIO8 = 1;     // Configure GPIO8 as EQEP3S
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO9 = 1;    // Configure GPIO9 as EQEP3I
+    GpioCtrlRegs.GPAMUX1.bit.GPIO9 = 1;     // Configure GPIO9 as EQEP3I
 
 
     EDIS;
+}
+void PositionSpeedCalculate(void)
+{
+    /*beginning of the page 2013 at reference manual*/
+    if(uiHighSpeedFlag==HIGHSPEED)
+    {
+        if(EQep3Regs.QFLG.bit.UTO == 1)    // If unit timeout (depends on QUPRD)
+        {
+#if 0
+            dAngularSpeed = (double)EQep3Regs.QPOSLAT/(double)EQep3Regs.QUPRD;
+            EQep3Regs.QCLR.bit.UTO=1;                   // Clear __interrupt flag
+#endif
+            uiPositionLatchedPrevious = uiPositionLatched; /*TODO; consider about first index event actions?*/
+            uiPositionLatched = EQep3Regs.QPOSLAT;
+            uiDirectonOfRotation = EQep3Regs.QEPSTS.bit.QDF;
+            if(uiDirectonOfRotation==COUNTERCLOCKWISE) //then QPOSCNT counting up
+            {
+                /*uiPositionTotalCounted is always positive*/
+                if(uiPositionLatched>=uiPositionLatchedPrevious)
+                {
+                    uiPositionTotalCounted = (uiPositionLatched - uiPositionLatchedPrevious);
+                }
+                else //meaning if QPOSCNT is rolled over for its max value
+                {
+                    uiPositionTotalCounted = EQep3Regs.QPOSMAX - uiPositionLatchedPrevious + uiPositionLatched;
+                }
+            }
+            else if(uiDirectonOfRotation==CLOCKWISE)  //then QPOSCNT counting down
+            {
+                /*uiPositionTotalCounted is always positive*/
+                if(uiPositionLatched>uiPositionLatchedPrevious)
+                {
+                    uiPositionTotalCounted = EQep3Regs.QPOSMAX - uiPositionLatchedPrevious + uiPositionLatched;
+                }
+                else //meaning if QPOSCNT is rolled over for its max value
+                {
+                    uiPositionTotalCounted = (uiPositionLatched - uiPositionLatchedPrevious);
+                }
+            }
+            dAngularSpeed = (double)uiPositionTotalCounted/(double)EQep3Regs.QUPRD;
+            EQep3Regs.QCLR.bit.UTO=1;                   // Clear __interrupt flag
+        }
+    }
+    else if (uiHighSpeedFlag==LOWSPEED)
+    {
+        if(EQep3Regs.QEPSTS.bit.UPEVNT==1)
+        {
+            dAngularSpeed = (double)uiUpEventValue/(double)EQep3Regs.QCPRDLAT;
+            EQep3Regs.QEPSTS.bit.UPEVNT=1;              // Clear status flag
+        }
+
+    }
+
+
+#if 0
+    if(uiHighSpeedFlag==HIGHSPEED)
+    {
+        if(EQep3Regs.QFLG.bit.UTO == 1)    // If unit timeout (depends on QUPRD)
+        {
+            uiPositionLatched = EQep3Regs.QPOSLAT;
+            uiDirectonOfRotation = EQep3Regs.QEPSTS.bit.QDF;
+            if(uiDirectonOfRotation==COUNTERCLOCKWISE) //then QPOSCNT counting up
+            {
+                /*uiPositionTotalCounted is always positive*/
+                if(uiPositionLatched>=uiPositionLatchedPrevious)
+                {
+                    uiPositionTotalCounted = (uiPositionLatched - uiPositionLatchedPrevious);
+                }
+                else //meaning if QPOSCNT is rolled over for its max value
+                {
+                    uiPositionTotalCounted = EQep3Regs.QPOSMAX - uiPositionLatchedPrevious + uiPositionLatched;
+                }
+            }
+            else if(uiDirectonOfRotation==CLOCKWISE)  //then QPOSCNT counting down
+            {
+                /*uiPositionTotalCounted is always positive*/
+                if(uiPositionLatched>uiPositionLatchedPrevious)
+                {
+                    uiPositionTotalCounted = EQep3Regs.QPOSMAX - uiPositionLatchedPrevious + uiPositionLatched;
+                }
+                else //meaning if QPOSCNT is rolled over for its max value
+                {
+                    uiPositionTotalCounted = (uiPositionLatched - uiPositionLatchedPrevious);
+                }
+            }
+            EQep3Regs.QCLR.bit.UTO=1;                   // Clear __interrupt flag
+
+        }
+        //dAngularSpeed = (double)uiPositionTotalCounted/((double)EQep3Regs.QUPRD/CLOCKHZ));
+        dAngularSpeed = EQEP3UNITTIMECOEFF*uiPositionTotalCounted;
+        uiPositionLatchedPrevious = uiPositionLatched; /*TODO; consider about first index event actions?*/
+    }
+#endif
 }

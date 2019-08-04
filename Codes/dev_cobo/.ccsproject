@@ -14,4 +14,5 @@
 	<templateProperties value="id=com.ti.common.project.core.emptyProjectWithMainTemplate"/>
 	<filesToOpen value="main.c"/>
 	<origin value="C:/Users/admin/Documents/GitHub/mlv_inv/Codes/dev_cobo"/>
+	<isTargetManual value="false"/>
 </projectOptions>
