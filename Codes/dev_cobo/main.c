@@ -138,7 +138,19 @@ int main(void)
     while(1)
     {
         while(!CpuTimer0.InterruptCount)
-        {}
+        {
+            if(uiHighSpeedFlag==LOWSPEED)
+            {
+                EQep3Regs.QEPCTL.bit.PCRM= 3;       // QPOSCNT reset on unittime event
+                EQep3Regs.QEPCTL.bit.QCLM= 0;       // Latch on read
+            }
+            else if (uiHighSpeedFlag==HIGHSPEED)
+            {
+                EQep3Regs.QEPCTL.bit.PCRM= 1;       // QPOSCNT reset on QPOSMAX
+                EQep3Regs.QEPCTL.bit.QCLM= 1;       // Latch on unit timeout
+            }
+            PositionSpeedCalculate();
+        }
         WdRegs.WDKEY.all = 0x55;// serve to watchdog
         CpuTimer0.InterruptCount = 0;
 #if 0
@@ -153,17 +165,7 @@ int main(void)
 
         }
 #endif
-        if(uiHighSpeedFlag==LOWSPEED)
-        {
-            EQep3Regs.QEPCTL.bit.PCRM= 3;       // QPOSCNT reset on unittime event
-            EQep3Regs.QEPCTL.bit.QCLM= 0;       // Latch on read
-        }
-        else if (uiHighSpeedFlag==HIGHSPEED)
-        {
-            EQep3Regs.QEPCTL.bit.PCRM= 1;       // QPOSCNT reset on QPOSMAX
-            EQep3Regs.QEPCTL.bit.QCLM= 1;       // Latch on unit timeout
-        }
-        PositionSpeedCalculate();
+
     }
 }
 
@@ -339,7 +341,7 @@ void InitEpwm2(void){
 
     EPwm2Regs.TBCTL.bit.CTRMODE = 2; // Count up and douwn
     EPwm2Regs.TBCTL.bit.PHSEN = 1; //disable phase loading
-    EPwm2Regs.TBCTL.bit.CLKDIV = 2; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
+    EPwm2Regs.TBCTL.bit.CLKDIV = 0; //TBCLOK = EPWMCLOCK/(64*10) = 156250Hz
     EPwm2Regs.TBCTL.bit.HSPCLKDIV = 0;
     EPwm2Regs.TBCTL.bit.PHSDIR = 0;
 
@@ -391,7 +393,7 @@ void InitEQep3Module(void)
     /*the formula will be X/(t(k)-t(k-1)) at low  speeds, can be used with UPEVNT */
     /*the formula will be (x(k)-x(k-1))/T at high speeds, can be used with eqep unit timer or CAPCLK */
 
-    EQep3Regs.QUPRD=200;            // Unit Timer for 100Hz at 200 MHz SYSCLKOUT
+    EQep3Regs.QUPRD=4000000;            // Unit Timer for 100Hz at 200 MHz SYSCLKOUT
 
     EQep3Regs.QDECCTL.bit.QSRC=2;       // Up count mode (freq. measurement)
     EQep3Regs.QDECCTL.bit.XCR=0;        // 2x resolution (cnt falling and rising edges)
@@ -538,7 +540,8 @@ void PositionSpeedCalculate(void)
     {
         if(EQep3Regs.QEPSTS.bit.UPEVNT==1)
         {
-            dAngularSpeed = (double)uiUpEventValue/(double)EQep3Regs.QCPRDLAT;
+            EQep3Regs.QPOSCNT;/*required for latching on read event*/
+            dAngularSpeed = (double)8/(double)EQep3Regs.QCPRDLAT;
             EQep3Regs.QEPSTS.bit.UPEVNT=1;              // Clear status flag
         }
 
