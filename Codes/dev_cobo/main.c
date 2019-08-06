@@ -3,6 +3,8 @@
 
 float32 dAngularSpeed=0;
 float32 fRPM=0;
+float32 fAngularPosition;
+float32 fAngularSpeed;
 double dTimerCoefficient=0;
 unsigned int uiHighSpeedFlag=1; //0:low speed, 1 high speed
 Uint32 uiPositionLatched = 0;
@@ -19,6 +21,7 @@ unsigned int uiUpEventValue=16;
 #define CLOCKHZ             200000000 //200MHz
 #define EQEP3UNITTIMECOEFF   (double)CLOCKHZ/((double)EQep3Regs.QUPRD)
 #define ENCODERTICKCOUNT    200
+#define PI 3.14159
 
 void Gpio_Select1();
 void InitSystem();
@@ -28,7 +31,6 @@ void InitEpwm3();
 void InitEQep3Gpio_me(void);
 void InitEQep3Module(void);
 void PositionSpeedCalculate(void);
-void speedcalc(void);
 
 //interrupt void cpu_timer0_isr(void);
 __interrupt void cpu_timer0_isr(void);
@@ -482,20 +484,23 @@ void InitEQep3Gpio_me(void)
 
 void PositionSpeedCalculate(void)
 {
+    /*TODO cover up the reverse direction case*/
+    fAngularPosition = (float32)EQep3Regs.QPOSCNT/(float32)ENCODERTICKCOUNT*2*PI;
     if(uiHighSpeedFlag==HIGHSPEED)
     {
         if(EQep3Regs.QFLG.bit.UTO == 1)    // If unit timeout (depends on QUPRD)
         {
-            uiPositionLatchedPrevious = uiPositionLatched; /*TODO; consider about first index event actions?*/
+            uiPositionLatchedPrevious = uiPositionLatched;
             uiPositionLatched = EQep3Regs.QPOSLAT;
             if(uiPositionLatched>uiPositionLatchedPrevious)
                 uiPositionTotalCounted = (uiPositionLatched -uiPositionLatchedPrevious);
             else
                 uiPositionTotalCounted = ENCODERTICKCOUNT + uiPositionLatched - uiPositionLatchedPrevious;
 
-
-            fRPM = uiPositionTotalCounted*(CLOCKHZ/EQep3Regs.QUPRD)*60;
-            fRPM = fRPM/(float32)(ENCODERTICKCOUNT*4);
+            //fRPM = uiPositionTotalCounted*(CLOCKHZ/EQep3Regs.QUPRD)*60;
+            //fRPM = fRPM/(float32)(ENCODERTICKCOUNT*4);
+            fAngularSpeed = uiPositionTotalCounted*(CLOCKHZ/EQep3Regs.QUPRD)*2*PI;
+            fAngularSpeed = fAngularSpeed/(float32)(ENCODERTICKCOUNT*4);
             EQep3Regs.QCLR.bit.UTO=1;
         }
     }
@@ -503,13 +508,11 @@ void PositionSpeedCalculate(void)
     {
         if(EQep3Regs.QEPSTS.bit.UPEVNT==1)
         {
-            //dAngularSpeed = (float32)16/(float32)EQep3Regs.QCPRDLAT;
-            fRPM = 16*((CLOCKHZ/128)/EQep3Regs.QCPRDLAT)*60;
-            fRPM = fRPM/(float32)(ENCODERTICKCOUNT*4);
+            //fRPM = 16*((CLOCKHZ/128)/EQep3Regs.QCPRDLAT)*60;
+            //fRPM = fRPM/(float32)(ENCODERTICKCOUNT*4);
+            fAngularSpeed = 16*((CLOCKHZ/128)/EQep3Regs.QCPRDLAT)*2*PI;/*TODO; parameterize the values,16 comes from UPPS value,128 comes from ccps value*/
+            fAngularSpeed = fAngularSpeed/(float32)(ENCODERTICKCOUNT*4);
             EQep3Regs.QEPSTS.bit.UPEVNT=1;              // Clear status flag
         }
-
     }
-
-
 }
